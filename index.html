@@ -813,17 +813,17 @@
             <div id="classView" class="hidden max-w-7xl mx-auto p-4 md:p-8 space-y-6">
                 <div
                     class="glass-card p-6 md:p-10 rounded-[2.5rem] shadow-sm flex flex-col md:flex-row md:flex-wrap justify-between items-center gap-4">
-                    <div class="flex items-center gap-6 flex-1 min-w-0">
-                        <div class="w-20 h-20 rounded-3xl bg-indigo-600 flex items-center justify-center text-white shadow-xl shadow-indigo-100 flex-shrink-0">
-                            <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div class="flex items-center gap-3 sm:gap-6 flex-1 min-w-0 w-full md:w-auto">
+                        <div class="w-12 h-12 sm:w-20 sm:h-20 rounded-2xl sm:rounded-3xl bg-indigo-600 flex items-center justify-center text-white shadow-xl shadow-indigo-100 flex-shrink-0">
+                            <svg class="w-6 h-6 sm:w-10 sm:h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
                                     d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z">
                                 </path>
                             </svg>
                         </div>
                         <div class="flex-1 min-w-0">
-                            <h1 class="text-3xl font-black text-slate-900">Klassenübersicht</h1>
-                            <p id="classViewSubtitle" class="text-slate-500 text-sm mt-1">Alle Schüler im Überblick</p>
+                            <h1 class="text-xl sm:text-3xl font-black text-slate-900 truncate">Klassenübersicht</h1>
+                            <p id="classViewSubtitle" class="text-slate-500 text-xs sm:text-sm mt-0.5 sm:mt-1 truncate">Alle Schüler im Überblick</p>
                         </div>
                     </div>
                     <div class="flex items-center justify-center gap-3">
@@ -2556,9 +2556,9 @@
                 const action = key ? `onclick="toggleClassSort('${key}')"` : 'onclick="clearClassSort()"';
                 const title = key ? (active ? 'Sortierung aufheben' : `Nach „${CLASS_SORT_LABELS[key]}" sortieren`) : 'Sortierung zurücksetzen';
                 return `<button type="button" ${action} title="${title}" data-help="${key ? 'Klick: nach diesem Kriterium sortieren' : 'Sortierung zurücksetzen'}"
-                    class="w-full h-full px-4 py-3 rounded-2xl ${cls} flex items-baseline gap-2 shadow-sm transition-all hover:shadow-md focus:outline-none${ring}">
-                    <span class="text-2xl font-black">${value}</span>
-                    <span class="text-xs font-bold uppercase tracking-wide text-left">${label}</span>
+                    class="w-full h-full px-3 py-2 sm:px-4 sm:py-3 rounded-2xl ${cls} flex flex-col sm:flex-row sm:items-baseline gap-0 sm:gap-2 shadow-sm transition-all hover:shadow-md focus:outline-none${ring}">
+                    <span class="text-lg sm:text-2xl font-black leading-tight">${value}</span>
+                    <span class="text-[10px] sm:text-xs font-bold uppercase tracking-wide sm:tracking-wide text-left leading-tight whitespace-nowrap">${label}</span>
                 </button>`;
             };
             const avgNoteDisp = isNaN(avgNote) ? '–' : avgNote.toFixed(2);
