@@ -3304,10 +3304,47 @@
     </div>
 
 <script>
-  // PWA: Service Worker registrieren (nur über http(s); auf file:// inaktiv)
+  // PWA: Service Worker registrieren + auf neue Version hinweisen (nur über http(s); auf file:// inaktiv).
+  // Schülerdaten leben nur im Browser-Speicher (kein localStorage) -> ein Reload verwirft nicht
+  // gespeicherte Eingaben. Deshalb NIE automatisch neu laden, sondern Hinweis mit Rückfrage.
   if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+    function showSwUpdateBanner() {
+      if (document.getElementById('swUpdateBanner')) return; // nicht doppelt einblenden
+      var bar = document.createElement('div');
+      bar.id = 'swUpdateBanner';
+      bar.style.cssText = 'position:fixed;left:0;right:0;bottom:0;z-index:9999;background:#4f46e5;' +
+        'color:#fff;font:600 14px/1.4 Inter,system-ui,sans-serif;padding:12px 16px;display:flex;' +
+        'align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;box-shadow:0 -4px 16px rgba(0,0,0,.15)';
+      bar.innerHTML =
+        '<span>Neue Version verfügbar</span>' +
+        '<button id="swUpdateBtn" style="background:#fff;color:#4f46e5;border:none;border-radius:8px;' +
+        'padding:6px 14px;font-weight:700;cursor:pointer">Jetzt aktualisieren</button>' +
+        '<button id="swUpdateDismiss" style="background:transparent;color:#fff;border:1px solid rgba(255,255,255,.5);' +
+        'border-radius:8px;padding:6px 14px;font-weight:600;cursor:pointer">Später</button>';
+      document.body.appendChild(bar);
+      document.getElementById('swUpdateBtn').addEventListener('click', function () {
+        var ok = confirm('Update laden? Nicht gespeicherte Eingaben (z. B. gerade bearbeitete Schülerdaten) gehen dabei verloren.');
+        if (ok) window.location.reload();
+      });
+      document.getElementById('swUpdateDismiss').addEventListener('click', function () {
+        bar.remove();
+      });
+    }
+
     window.addEventListener('load', function () {
-      navigator.serviceWorker.register('sw.js').catch(function (e) {
+      navigator.serviceWorker.register('sw.js').then(function (reg) {
+        // Fall 1: Beim Laden gibt es schon einen neuen Worker, der auf Aktivierung wartet.
+        if (reg.waiting) showSwUpdateBanner();
+        // Fall 2: Ein neuer Worker wird während dieser Sitzung gefunden und installiert.
+        reg.addEventListener('updatefound', function () {
+          var nw = reg.installing;
+          if (!nw) return;
+          nw.addEventListener('statechange', function () {
+            // 'installed' + bereits ein aktiver Controller vorhanden -> echtes Update, kein Erstinstall.
+            if (nw.state === 'installed' && navigator.serviceWorker.controller) showSwUpdateBanner();
+          });
+        });
+      }).catch(function (e) {
         console.warn('Service-Worker-Registrierung fehlgeschlagen:', e);
       });
     });
