@@ -2489,6 +2489,31 @@
         window.toggleClassSort = (key) => { classSort = (classSort === key) ? null : key; renderClassView(); };
         window.clearClassSort = () => { classSort = null; renderClassView(); };
 
+        // Aktive Sortierung (classSort) auf eine Schülerliste anwenden – genutzt von Klassenansicht
+        // UND Klassenlisten-Druck, damit die Druckansicht immer der aktuellen Sortierung entspricht.
+        const sortClassList = (list) => {
+            if (!classSort) return list;
+            return [...list].sort((a, b) => {
+                const ra = calculateResults(a), rb = calculateResults(b);
+                if (classSort === 'up' || classSort === 'down') {
+                    const va = studentCourseChanges(ra)[classSort], vb = studentCourseChanges(rb)[classSort];
+                    if (vb !== va) return vb - va;
+                } else if (classSort === 'note') {
+                    // Beste (= kleinste) Ø Note zuerst; Schüler ohne Note ans Ende
+                    const va = classAvgGrade(ra), vb = classAvgGrade(rb);
+                    const na = isNaN(va), nb = isNaN(vb);
+                    if (na !== nb) return na ? 1 : -1;
+                    if (!na && va !== vb) return va - vb;
+                } else if (classSort === 'points') {
+                    // höchste Gesamtpunkte zuerst (entspricht der Sekundärsortierung unten)
+                } else {
+                    const ma = classBucket(ra) === classSort ? 0 : 1, mb = classBucket(rb) === classSort ? 0 : 1;
+                    if (ma !== mb) return ma - mb;
+                }
+                return rb.stats.sumTotal - ra.stats.sumTotal;
+            });
+        };
+
         window.renderClassView = () => {
             // Klasse 11 (Arbeitskopie): eigene Versetzungs-Übersicht statt Abschluss-Matrix.
             const rcvCfg = typeof getStageConfig === 'function' ? getStageConfig() : null;
@@ -2522,27 +2547,7 @@
             const avgNote = noteCount ? noteSum / noteCount : NaN;
 
             // Aktive Sortierung anwenden (matchende Schüler nach oben, sekundär nach Gesamtpunkten)
-            if (classSort) {
-                list = [...list].sort((a, b) => {
-                    const ra = calculateResults(a), rb = calculateResults(b);
-                    if (classSort === 'up' || classSort === 'down') {
-                        const va = studentCourseChanges(ra)[classSort], vb = studentCourseChanges(rb)[classSort];
-                        if (vb !== va) return vb - va;
-                    } else if (classSort === 'note') {
-                        // Beste (= kleinste) Ø Note zuerst; Schüler ohne Note ans Ende
-                        const va = classAvgGrade(ra), vb = classAvgGrade(rb);
-                        const na = isNaN(va), nb = isNaN(vb);
-                        if (na !== nb) return na ? 1 : -1;
-                        if (!na && va !== vb) return va - vb;
-                    } else if (classSort === 'points') {
-                        // höchste Gesamtpunkte zuerst (entspricht der Sekundärsortierung unten)
-                    } else {
-                        const ma = classBucket(ra) === classSort ? 0 : 1, mb = classBucket(rb) === classSort ? 0 : 1;
-                        if (ma !== mb) return ma - mb;
-                    }
-                    return rb.stats.sumTotal - ra.stats.sumTotal;
-                });
-            }
+            list = sortClassList(list);
 
             // Chip/Badge: klickbar (key) sortiert; aktiver Badge bekommt eine Umrandung (Ring)
             const chip = (label, value, cls, key) => {
@@ -3037,7 +3042,8 @@
                 return;
             }
             if (pcCfg && pcCfg.kind === 'k11' && typeof printK11ClassList === 'function') { printK11ClassList(); return; }
-            const rows = students.map(s => {
+            // Gleiche Reihenfolge wie in der Klassenansicht (aktive Sortierung, s. classview.js).
+            const rows = sortClassList(students).map(s => {
                 const res = calculateResults(s);
                 const mark = c => c.isMet ? '✓' : '';
                 const rated = [...res.stats.fgiRes, ...res.stats.fgiiRes].filter(x => x.pts !== null && !x.isComponent);
@@ -3046,10 +3052,11 @@
                 const top = res.FORQ.isMet ? 'FOR-Q' : res.FOR.isMet ? 'FOR' : res.EBR.isMet ? 'EBR' : '–';
                 return `<tr><td style="text-align:left">${s.name}</td><td>${top}</td><td>${mark(res.EBR)}</td><td>${mark(res.FOR)}</td><td>${mark(res.FORQ)}</td><td>${avg}</td><td>${res.stats.sumTotal.toFixed(1)}</td><td style="text-align:left">${ch || '–'}</td></tr>`;
             }).join('');
+            const sortSuffix = classSort ? ` · sortiert nach ${CLASS_SORT_LABELS[classSort]}` : '';
             printTemplate(`
                 <div style="font-family:Inter,sans-serif;color:#1f2937">
                     <h1 style="font-size:1.4rem;font-weight:800;margin-bottom:2px">Klassenliste – Abschlussübersicht</h1>
-                    <p style="color:#6b7280;margin-bottom:12px;font-size:10pt">${classLabel()}${halfSuffix()} · ${students.length} Schüler · Stand ${new Date().toLocaleDateString('de-DE')}</p>
+                    <p style="color:#6b7280;margin-bottom:12px;font-size:10pt">${classLabel()}${halfSuffix()} · ${students.length} Schüler · Stand ${new Date().toLocaleDateString('de-DE')}${sortSuffix}</p>
                     <table style="width:100%;border-collapse:collapse;font-size:9pt">
                         <thead><tr style="background:#f1f5f9">
                             <th style="text-align:left">Name</th><th>Abschluss</th><th>BBR/EBR</th><th>FOR</th><th>FOR-Q</th><th>Ø Note</th><th>Punkte</th><th style="text-align:left">Kurswechsel</th>
