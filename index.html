@@ -71,6 +71,15 @@
             border: 1px solid rgba(255, 255, 255, 0.3);
         }
 
+        /* Mehr Tiefe für Kartenelemente (Dashboard-Karten, Panels) – überschreibt
+           Tailwinds dezentes shadow-sm gezielt per Doppelklassen-Selektor, ohne
+           Buttons/Badges/Modals (die eigene Shadow-Stufen haben) zu berühren. */
+        .glass-card.shadow-sm,
+        .rounded-3xl.shadow-sm,
+        .rounded-2xl.shadow-sm {
+            box-shadow: 0 10px 15px -3px rgba(15, 23, 42, 0.1), 0 4px 6px -4px rgba(15, 23, 42, 0.1);
+        }
+
         .grade-input:focus {
             outline: none;
             border-color: #6366f1;
@@ -1952,7 +1961,7 @@
                 const termKey = statusTermKey[title];
                 const titleHtml = termKey ? `<span class="wiki-term" data-term="${termKey}">${title}</span>` : title;
                 return `
-            <div class="bg-white p-5 rounded-3xl border ${data.isMet ? 'border-emerald-200 bg-emerald-50/20' : 'border-slate-200'} transition-all">
+            <div class="bg-white p-5 rounded-3xl border ${data.isMet ? 'border-emerald-200 bg-emerald-50/20' : 'border-slate-200'} shadow-sm transition-all">
                 <div class="flex justify-between items-center mb-3">
                     <h4 class="font-black ${data.isMet ? 'text-emerald-700' : 'text-slate-800'} text-lg">${titleHtml}</h4>
                     <span class="w-8 h-8 rounded-full flex items-center justify-center ${data.isMet ? 'bg-emerald-500 text-white' : 'bg-slate-100 text-slate-400'}">
