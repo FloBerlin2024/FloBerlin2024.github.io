@@ -1961,7 +1961,7 @@
                 const termKey = statusTermKey[title];
                 const titleHtml = termKey ? `<span class="wiki-term" data-term="${termKey}">${title}</span>` : title;
                 return `
-            <div class="bg-white p-5 rounded-3xl border ${data.isMet ? 'border-emerald-200 bg-emerald-50/20' : 'border-slate-200'} shadow-sm transition-all">
+            <div class="p-5 rounded-3xl border ${data.isMet ? 'border-emerald-200 bg-emerald-50/20' : 'border-slate-200 bg-white'} shadow-sm transition-all">
                 <div class="flex justify-between items-center mb-3">
                     <h4 class="font-black ${data.isMet ? 'text-emerald-700' : 'text-slate-800'} text-lg">${titleHtml}</h4>
                     <span class="w-8 h-8 rounded-full flex items-center justify-center ${data.isMet ? 'bg-emerald-500 text-white' : 'bg-slate-100 text-slate-400'}">
