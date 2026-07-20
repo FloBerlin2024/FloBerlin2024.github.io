@@ -324,18 +324,23 @@
     <!-- Gemeinsame Hover-Karte für Fachbegriffe (.wiki-term) -->
     <div id="wikiTip" class="no-print"></div>
 
-    <!-- UNDO: schwebend unten mittig, nur sichtbar bei Änderungen.
-         Links: letzten Schritt zurücknehmen (weiß) · rechts: alles zurücksetzen (orange) -->
+    <!-- UNDO/REDO/RESET: schwebend unten mittig, jeder Button nur sichtbar wenn nutzbar.
+         Links: Reset (weiß, alles verwerfen) · Mitte: Undo (orange, Schritt zurück) · rechts: Redo (orange, Schritt vor) -->
     <div class="no-print fixed bottom-5 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3">
+        <button id="resetBtn" onclick="resetAll()" title="Alle Änderungen zurücksetzen"
+            data-help="Alle Änderungen verwerfen und auf den Ausgangszustand zurücksetzen (mit Rückfrage)"
+            class="hidden h-12 px-5 rounded-full bg-white hover:bg-orange-50 text-orange-500 border border-orange-300 font-extrabold text-sm shadow-xl flex items-center justify-center transition-colors hover:scale-105">
+            Reset
+        </button>
         <button id="undoStepBtn" onclick="undoStep()" title="Letzten Schritt rückgängig machen"
             data-help="Nur die letzte Änderung zurücknehmen (Schritt für Schritt)"
-            class="hidden w-12 h-12 rounded-full bg-white hover:bg-orange-50 text-orange-500 border border-orange-200 shadow-xl flex items-center justify-center transition-colors hover:scale-105">
+            class="hidden w-12 h-12 rounded-full bg-orange-500 hover:bg-orange-600 text-white shadow-xl flex items-center justify-center transition-colors hover:scale-105">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14L4 9l5-5"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 9h11a4 4 0 110 8h-1"/></svg>
         </button>
-        <button id="undoBtn" onclick="resetAll()" title="Alle Änderungen zurücksetzen"
-            data-help="Alle Änderungen verwerfen und auf den Ausgangszustand zurücksetzen"
-            class="hidden w-14 h-14 rounded-full bg-orange-500 hover:bg-orange-600 text-white shadow-xl flex items-center justify-center transition-colors hover:scale-105">
-            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14L4 9l5-5"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 9h11a4 4 0 110 8h-1"/></svg>
+        <button id="redoStepBtn" onclick="redoStep()" title="Schritt wiederherstellen"
+            data-help="Eine zurückgenommene Änderung wiederherstellen (Gegenstück zum Undo)"
+            class="hidden w-12 h-12 rounded-full bg-orange-500 hover:bg-orange-600 text-white shadow-xl flex items-center justify-center transition-colors hover:scale-105">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 14l5-5-5-5"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 9H9a4 4 0 100 8h1"/></svg>
         </button>
     </div>
 
@@ -491,7 +496,17 @@
                     </button>
                 </div>
                 <div class="p-6 overflow-y-auto custom-scrollbar space-y-4 text-sm text-slate-600 leading-relaxed">
-                    <p class="text-xs text-slate-400">Kurzfassung der Änderungen. Aktuelle Version: <span class="font-bold text-slate-600">v1.13.0</span>.</p>
+                    <p class="text-xs text-slate-400">Kurzfassung der Änderungen. Aktuelle Version: <span class="font-bold text-slate-600">v1.14.0</span>.</p>
+                    <div>
+                        <div class="flex items-baseline gap-2"><span class="font-extrabold text-indigo-700">v1.14.0</span><span class="text-xs font-bold text-slate-400">19.07.2026</span></div>
+                        <ul class="list-disc pl-5 mt-1 space-y-0.5">
+                            <li><b>Neu:</b> Redo-Button – eine per Undo zurückgenommene Änderung lässt sich wiederherstellen (mehrfach). Eine neue Eingabe verwirft den Redo-Verlauf.</li>
+                            <li><b>Neu:</b> „Reset"-Button (weiß, links) ersetzt den bisherigen orangen Alles-zurück-Pfeil – verwirft nach Rückfrage alle Änderungen; Undo/Redo starten danach leer.</li>
+                            <li>Undo und Redo sind jetzt die beiden orangen Pfeil-Buttons; sichtbar nur, wenn es etwas zurückzunehmen bzw. zu wiederholen gibt.</li>
+                            <li>Optik: deutlichere Schatten für Karten; erreichte Abschlüsse wieder mit grünem Hintergrund (Standalone/PWA).</li>
+                            <li>Die Mehrstufen-Variante heißt jetzt <b>TGS Mehrstufenrechner</b>.</li>
+                        </ul>
+                    </div>
                     <div>
                         <div class="flex items-baseline gap-2"><span class="font-extrabold text-indigo-700">v1.13.0</span><span class="text-xs font-bold text-slate-400">07.07.2026</span></div>
                         <ul class="list-disc pl-5 mt-1 space-y-0.5">
@@ -609,7 +624,7 @@
                             </svg>
                         </button>
                     </h1>
-                    <p class="text-xs text-slate-400 mt-2 uppercase tracking-widest font-bold">Sek I <button onclick="openChangelog()" class="text-slate-300 normal-case tracking-normal font-semibold hover:text-indigo-600 cursor-pointer underline decoration-dotted underline-offset-2 transition-colors" title="Was ist neu? Changelog &amp; Kontakt">· v1.13.0</button></p>
+                    <p class="text-xs text-slate-400 mt-2 uppercase tracking-widest font-bold">Sek I <button onclick="openChangelog()" class="text-slate-300 normal-case tracking-normal font-semibold hover:text-indigo-600 cursor-pointer underline decoration-dotted underline-offset-2 transition-colors" title="Was ist neu? Changelog &amp; Kontakt">· v1.14.0</button></p>
                     <p id="metaDisplay" class="mt-1 text-sm font-bold text-indigo-900"></p>
                     <!-- Stufen-Indikator (nur Arbeitskopie; von stages.js gefüllt) -->
                     <div id="stageIndicator" class="hidden mt-2"></div>
@@ -1014,10 +1029,13 @@
         const snapshotBaseline = () => { baselineJSON = JSON.stringify(students); resetHistory(); refreshUndo(); };
         const isDirty = () => !!baselineJSON && JSON.stringify(students) !== baselineJSON;
 
-        // --- Schrittweises UNDO: Verlauf der Schülerdaten, jede Änderung = ein Schritt ---
+        // --- Schrittweises UNDO/REDO: Verlauf der Schülerdaten, jede Änderung = ein Schritt ---
         // trackHistory() läuft über refreshUndo() nach jeder Änderung/jedem Render mit; schnelle
         // Folgeänderungen (<800 ms, z. B. Tippen im Bemerkungsfeld) werden zu EINEM Schritt gebündelt.
+        // redoStack sammelt per Undo zurückgenommene Zustände; jede ECHTE neue Änderung verwirft ihn
+        // (Standard-Semantik: nach neuer Eingabe gibt es nichts mehr zu „wiederholen").
         let undoHistory = [];      // Schnappschüsse VOR der jeweils letzten Änderung
+        let redoStack = [];        // per Undo zurückgenommene Zustände (für Redo)
         let historySeen = '';      // zuletzt registrierter Zustand
         let historyStamp = 0;      // Zeitpunkt des letzten Schritts (für die Bündelung)
         const HISTORY_MAX = 100;
@@ -1025,6 +1043,8 @@
             const now = JSON.stringify(students);
             if (!historySeen) { historySeen = now; return; }
             if (now === historySeen) return;
+            // Echte neue Änderung (kein Undo/Redo – die setzen historySeen selbst): Redo verfällt.
+            redoStack = [];
             const t = Date.now();
             if (t - historyStamp > 800) {
                 undoHistory.push(historySeen);
@@ -1033,7 +1053,7 @@
             historyStamp = t;
             historySeen = now;
         };
-        const resetHistory = () => { undoHistory = []; historySeen = JSON.stringify(students); historyStamp = 0; };
+        const resetHistory = () => { undoHistory = []; redoStack = []; historySeen = JSON.stringify(students); historyStamp = 0; };
 
         // Sprungziel eines Undo-Schritts bestimmen: welcher Schüler / welches Eingabefeld
         // unterscheidet sich zwischen dem Zustand VOR dem Undo (before) und danach (after)?
@@ -1054,13 +1074,9 @@
             return null;                                                     // Anlegen rückgängig: Schüler wieder weg
         };
 
-        window.undoStep = () => {
-            if (!undoHistory.length) return;
-            const before = students;
-            students = JSON.parse(undoHistory.pop());
-            historySeen = JSON.stringify(students);
-            historyStamp = 0;
-            // Dahin springen, wo das Undo passiert: Schüler aktivieren, Feld fokussieren.
+        // Gemeinsamer Abschluss von Undo UND Redo: zum betroffenen Schüler/Feld springen,
+        // neu rendern und das geänderte Feld kurz hervorheben.
+        const jumpToHistoryChange = (before) => {
             const target = findUndoTarget(before, students);
             if (target) { activeStudentId = target.id; lastFocusedId = target.field; }
             else lastFocusedId = null;
@@ -1084,15 +1100,37 @@
             }
         };
 
+        window.undoStep = () => {
+            if (!undoHistory.length) return;
+            const before = students;
+            redoStack.push(historySeen);            // aktuellen Zustand für Redo aufheben
+            students = JSON.parse(undoHistory.pop());
+            historySeen = JSON.stringify(students);
+            historyStamp = 0;
+            jumpToHistoryChange(before);
+        };
+
+        window.redoStep = () => {
+            if (!redoStack.length) return;
+            const before = students;
+            undoHistory.push(historySeen);          // aktuellen Zustand für erneutes Undo aufheben
+            students = JSON.parse(redoStack.pop());
+            historySeen = JSON.stringify(students);
+            historyStamp = 0;
+            jumpToHistoryChange(before);
+        };
+
         const refreshUndo = () => {
             trackHistory();
-            const b = document.getElementById('undoBtn'); if (b) b.classList.toggle('hidden', !isDirty());
+            const r = document.getElementById('resetBtn'); if (r) r.classList.toggle('hidden', !isDirty());
             const s = document.getElementById('undoStepBtn'); if (s) s.classList.toggle('hidden', undoHistory.length === 0);
+            const d = document.getElementById('redoStepBtn'); if (d) d.classList.toggle('hidden', redoStack.length === 0);
         };
         window.resetAll = () => {
             if (!isDirty()) return;
             if (!confirm('Alle Änderungen verwerfen und auf den Ausgangszustand zurücksetzen?')) return;
             students = JSON.parse(baselineJSON);
+            resetHistory();                         // Reset ist endgültig: Undo/Redo-Verlauf leeren
             if (!students.some(s => s.id === activeStudentId)) activeStudentId = students[0].id;
             lastFocusedId = null;
             renderSidebar();
