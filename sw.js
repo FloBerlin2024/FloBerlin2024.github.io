@@ -5,7 +5,7 @@
  *
  * Cache-Version bei jeder Auslieferung erhöhen -> alter Cache wird ersetzt.
  */
-const CACHE = 'tgs-abschlussrechner-v62';
+const CACHE = 'tgs-abschlussrechner-v63';
 
 // Relativ zu /…/PWA/sw.js. '../vendor' und 'favicon.png' liegen im Projekt-Root.
 const PRECACHE = [
