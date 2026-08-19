@@ -46,7 +46,7 @@
         })();
     </script>
     <!-- Lokale Bibliotheken (vollständig offline, kein CDN) -->
-    <!-- Tailwind: vorkompiliert (statt 407 KB Runtime) – neu erzeugen via PWA/tools/ -->
+    <!-- Tailwind: vorkompiliert (statt 407 KB Runtime) – neu erzeugen via tools/tailwind_css.py -->
     <link rel="stylesheet" href="app.tw.css">
     <!-- SheetJS für Excel-Import: defer (erst bei Import nötig, blockiert nicht den ersten Aufbau) -->
     <script src="vendor/xlsx.full.min.js" defer></script>
@@ -140,6 +140,23 @@
         }
 
         /* --- A4 PRINT STYLES (User Template) --- */
+
+        /* Höhe EINER Druckseite. Sie muss zu den @page-Rändern weiter unten passen:
+           A4 ist 297mm hoch, davon gehen 10mm oben + 10mm unten ab -> 277mm bedruckbar.
+           Die 2mm Abzug sind Sicherheitsabstand, weil Browser die Seitenhöhe gerundet
+           rechnen. Ist der Kasten auch nur einen Hauch höher als die bedruckbare Fläche,
+           rutscht die per flex-Abstandhalter nach unten geschobene Unterschriftszeile auf
+           eine zweite, sonst leere Seite.
+           Bewusst HIER und nicht als Tailwind-Klasse im Markup: Die Höhe hängt an den
+           @page-Rändern und muss mit ihnen zusammen geändert werden. */
+        :root {
+            --print-page-height: 275mm;
+        }
+
+        .report-page {
+            height: var(--print-page-height);
+        }
+
         #printReportTemplate {
             display: none;
             width: 210mm;
@@ -496,7 +513,13 @@
                     </button>
                 </div>
                 <div class="p-6 overflow-y-auto custom-scrollbar space-y-4 text-sm text-slate-600 leading-relaxed">
-                    <p class="text-xs text-slate-400">Kurzfassung der Änderungen. Aktuelle Version: <span class="font-bold text-slate-600">v1.14.0</span>.</p>
+                    <p class="text-xs text-slate-400">Kurzfassung der Änderungen. Aktuelle Version: <span class="font-bold text-slate-600">v1.14.2</span>.</p>
+                    <div>
+                        <div class="flex items-baseline gap-2"><span class="font-extrabold text-indigo-700">v1.14.2</span><span class="text-xs font-bold text-slate-400">19.08.2026</span></div>
+                        <ul class="list-disc pl-5 mt-1 space-y-0.5">
+                            <li><b>Behoben:</b> Die Schülerauswertung wurde auf zwei Seiten gedruckt – auf der zweiten stand nur noch die Unterschriftszeile. Der Bericht passt jetzt wieder auf eine Seite.</li>
+                        </ul>
+                    </div>
                     <div>
                         <div class="flex items-baseline gap-2"><span class="font-extrabold text-indigo-700">v1.14.0</span><span class="text-xs font-bold text-slate-400">20.07.2026</span></div>
                         <ul class="list-disc pl-5 mt-1 space-y-0.5">
@@ -624,7 +647,7 @@
                             </svg>
                         </button>
                     </h1>
-                    <p class="text-xs text-slate-400 mt-2 uppercase tracking-widest font-bold">Sek I <button onclick="openChangelog()" class="text-slate-300 normal-case tracking-normal font-semibold hover:text-indigo-600 cursor-pointer underline decoration-dotted underline-offset-2 transition-colors" title="Was ist neu? Changelog &amp; Kontakt">· v1.14.0</button></p>
+                    <p class="text-xs text-slate-400 mt-2 uppercase tracking-widest font-bold">Sek I <button onclick="openChangelog()" class="text-slate-300 normal-case tracking-normal font-semibold hover:text-indigo-600 cursor-pointer underline decoration-dotted underline-offset-2 transition-colors" title="Was ist neu? Changelog &amp; Kontakt">· v1.14.2</button></p>
                     <p id="metaDisplay" class="mt-1 text-sm font-bold text-indigo-900"></p>
                     <!-- Stufen-Indikator (nur Arbeitskopie; von stages.js gefüllt) -->
                     <div id="stageIndicator" class="hidden mt-2"></div>
@@ -2750,7 +2773,7 @@
             }
             const tableHead = '<thead><tr class="bg-gray-100 border-b border-gray-300"><th class="p-1 text-xs text-left">Fach</th><th class="p-1 text-xs text-left">Kurs</th><th class="p-1 text-right text-xs">Note</th></tr></thead>';
             return `
-                <div class="report-page bg-white p-6 h-[290mm] flex flex-col relative box-border mx-auto">
+                <div class="report-page bg-white p-6 flex flex-col relative box-border mx-auto">
                     <header class="border-b-2 border-gray-800 pb-2 mb-4 shrink-0">
                         <div class="flex justify-between items-end">
                             <div>
@@ -2871,7 +2894,7 @@
             `;
 
             return `
-                <div class="report-page bg-white p-6 h-[290mm] flex flex-col relative box-border mx-auto">
+                <div class="report-page bg-white p-6 flex flex-col relative box-border mx-auto">
                     <header class="border-b-2 border-gray-800 pb-2 mb-4 shrink-0">
                         <div class="flex justify-between items-end">
                             <div>

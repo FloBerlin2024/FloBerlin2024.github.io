@@ -3,11 +3,16 @@
  * danach Cache-first mit Netz-Fallback. Schülerdaten werden NIE gecached
  * (sie entstehen nur lokal im Speicher und gehen nie über das Netz).
  *
- * Cache-Version bei jeder Auslieferung erhöhen -> alter Cache wird ersetzt.
+ * VORLAGE: Der Platzhalter unten wird beim Bauen durch einen Namen mit Inhalts-Hash ersetzt
+ * (build-all.py). Der Name ändert sich damit GENAU DANN, wenn sich die ausgelieferten
+ * Dateien ändern – ein Leerbau erzeugt keine Fehlmeldung „Neue Version verfügbar".
+ * Diese Datei selbst wird beim Bauen nie überschrieben.
  */
-const CACHE = 'tgs-abschlussrechner-v63';
+const CACHE = 'tgs-abschlussrechner-7e38ed62fb32';
 
-// Relativ zu /…/PWA/sw.js. '../vendor' und 'favicon.png' liegen im Projekt-Root.
+// Alles relativ ZUM PWA-ORDNER: er enthält seine Bibliotheken selbst (der Build kopiert
+// vendor/ und favicon.png hinein) und lässt sich deshalb allein auf einen Server legen.
+// ApexCharts fehlt bewusst – die Diagramme sind ein reines Test-Feature von TEST.html.
 const PRECACHE = [
   './',
   './index.html',
@@ -16,10 +21,9 @@ const PRECACHE = [
   './icons/icon-192.png',
   './icons/icon-512.png',
   './icons/icon-maskable-512.png',
-  'vendor/xlsx.full.min.js',
-  'vendor/apexcharts.min.js',
-  'vendor/inter/inter-latin-wght-normal.woff2',
-  'favicon.png'
+  './vendor/xlsx.full.min.js',
+  './vendor/inter/inter-latin-wght-normal.woff2',
+  './favicon.png'
 ];
 
 self.addEventListener('install', (event) => {
