@@ -141,20 +141,39 @@
 
         /* --- A4 PRINT STYLES (User Template) --- */
 
-        /* Höhe EINER Druckseite. Sie muss zu den @page-Rändern weiter unten passen:
-           A4 ist 297mm hoch, davon gehen 10mm oben + 10mm unten ab -> 277mm bedruckbar.
-           Die 2mm Abzug sind Sicherheitsabstand, weil Browser die Seitenhöhe gerundet
-           rechnen. Ist der Kasten auch nur einen Hauch höher als die bedruckbare Fläche,
-           rutscht die per flex-Abstandhalter nach unten geschobene Unterschriftszeile auf
-           eine zweite, sonst leere Seite.
-           Bewusst HIER und nicht als Tailwind-Klasse im Markup: Die Höhe hängt an den
+        /* Höhe EINER Druckseite. Ist der Kasten auch nur einen Hauch höher als die
+           bedruckbare Fläche, rutscht die per flex-Abstandhalter nach unten geschobene
+           Unterschriftszeile auf eine zweite, sonst leere Seite.
+
+           A4 ist 297mm hoch; mit den @page-Rändern unten (10mm oben + 10mm unten) bleiben
+           277mm. Der Wert hier liegt bewusst darunter: Nicht jeder Druckdialog übernimmt
+           unsere @page-Ränder. Android setzt eigene (oft ~12,7mm) – 270mm verträgt Ränder
+           bis 13,5mm je Seite, ohne dass die Fußzeile hinausrutscht. Auf A4 sitzt sie
+           damit weiterhin sichtbar am Seitenende.
+
+           Bewusst HIER und nicht als Tailwind-Klasse im Markup: Die Höhe gehört zu den
            @page-Rändern und muss mit ihnen zusammen geändert werden. */
         :root {
-            --print-page-height: 275mm;
+            --print-page-height: 270mm;
         }
 
         .report-page {
-            height: var(--print-page-height);
+            /* 100vh ist im Druck die Höhe der TATSÄCHLICH bedruckbaren Seite – unabhängig
+               davon, welches Papierformat und welche Ränder der Druckdialog vorgibt (auf
+               Android weichen beide von A4/10mm ab). min() nimmt den kleineren Wert, der
+               Kasten kann also nie über die Seite hinausragen; auf A4 bleibt es bei 275mm. */
+            height: min(var(--print-page-height), 100vh);
+        }
+
+        /* Notbremse fürs Smartphone: Baut der Druck das Layout in Gerätebreite auf (Android
+           tut das je nach Version), stimmen absolute mm-Höhen nicht mehr. Dann bekommt der
+           Kasten gar keine feste Höhe – er ist nur so hoch wie sein Inhalt und kann damit
+           keine zweite Seite erzeugen. Die Unterschrift steht dann direkt unter dem Inhalt
+           statt am Seitenende. */
+        @media print and (max-width: 500px) {
+            .report-page {
+                height: auto;
+            }
         }
 
         #printReportTemplate {
@@ -513,7 +532,13 @@
                     </button>
                 </div>
                 <div class="p-6 overflow-y-auto custom-scrollbar space-y-4 text-sm text-slate-600 leading-relaxed">
-                    <p class="text-xs text-slate-400">Kurzfassung der Änderungen. Aktuelle Version: <span class="font-bold text-slate-600">v1.14.2</span>.</p>
+                    <p class="text-xs text-slate-400">Kurzfassung der Änderungen. Aktuelle Version: <span class="font-bold text-slate-600">v1.14.3</span>.</p>
+                    <div>
+                        <div class="flex items-baseline gap-2"><span class="font-extrabold text-indigo-700">v1.14.3</span><span class="text-xs font-bold text-slate-400">19.08.2026</span></div>
+                        <ul class="list-disc pl-5 mt-1 space-y-0.5">
+                            <li><b>Behoben:</b> Auf dem Smartphone (Android) wurde weiterhin auf zwei Seiten gedruckt. Die Seitenhöhe richtet sich jetzt nach dem, was der Druckdialog tatsächlich vorgibt – nicht mehr nach fest angenommenen A4-Rändern.</li>
+                        </ul>
+                    </div>
                     <div>
                         <div class="flex items-baseline gap-2"><span class="font-extrabold text-indigo-700">v1.14.2</span><span class="text-xs font-bold text-slate-400">19.08.2026</span></div>
                         <ul class="list-disc pl-5 mt-1 space-y-0.5">
@@ -647,7 +672,7 @@
                             </svg>
                         </button>
                     </h1>
-                    <p class="text-xs text-slate-400 mt-2 uppercase tracking-widest font-bold">Sek I <button onclick="openChangelog()" class="text-slate-300 normal-case tracking-normal font-semibold hover:text-indigo-600 cursor-pointer underline decoration-dotted underline-offset-2 transition-colors" title="Was ist neu? Changelog &amp; Kontakt">· v1.14.2</button></p>
+                    <p class="text-xs text-slate-400 mt-2 uppercase tracking-widest font-bold">Sek I <button onclick="openChangelog()" class="text-slate-300 normal-case tracking-normal font-semibold hover:text-indigo-600 cursor-pointer underline decoration-dotted underline-offset-2 transition-colors" title="Was ist neu? Changelog &amp; Kontakt">· v1.14.3</button></p>
                     <p id="metaDisplay" class="mt-1 text-sm font-bold text-indigo-900"></p>
                     <!-- Stufen-Indikator (nur Arbeitskopie; von stages.js gefüllt) -->
                     <div id="stageIndicator" class="hidden mt-2"></div>
