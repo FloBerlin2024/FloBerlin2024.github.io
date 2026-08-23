@@ -374,6 +374,23 @@
             transition: opacity .1s ease, transform .1s ease;
         }
         #helpTip.show { opacity: 1; transform: translateY(0); }
+
+        /* ---------- Regelwerk-Karte (Jahrgang & Rechtsstand) ----------
+           <details>/<summary>: Auf-/Zuklappen, Tastaturbedienung und Rolle kommen vom
+           Browser. Hier nur die Optik: das voreingestellte Dreieck weg (Safari braucht
+           dafuer das -webkit-Pseudoelement, Tailwinds list-none allein genuegt nicht) und
+           der Pfeil dreht sich beim Aufklappen mit. */
+        #regelwerkPanel > summary::-webkit-details-marker { display: none; }
+        #regelwerkPanel > summary::marker { content: ''; }
+        #regelwerkPanel .chevron { transition: transform .2s ease; }
+        #regelwerkPanel[open] .chevron { transform: rotate(180deg); }
+        /* Eingeklappt ist die Zusammenfassung die ganze Karte -- dann bleiben alle vier
+           Ecken rund; aufgeklappt sitzt der Inhalt darunter. */
+        #regelwerkPanel[open] > summary { border-bottom: 1px solid #f1f5f9; }
+
+        @media (prefers-reduced-motion: reduce) {
+            #regelwerkPanel .chevron { transition: none; }
+        }
     </style>
 </head>
 
@@ -718,7 +735,25 @@
                     </button>
                 </div>
                 <div class="p-6 overflow-y-auto custom-scrollbar space-y-4 text-sm text-slate-600 leading-relaxed">
-                    <p class="text-xs text-slate-400">Kurzfassung der Änderungen. Aktuelle Version: <span class="font-bold text-slate-600">v2.1.0</span>.</p>
+                    <p class="text-xs text-slate-400">Kurzfassung der Änderungen. Aktuelle Version: <span class="font-bold text-slate-600">v2.1.2</span>.</p>
+                    <div>
+                        <div class="flex items-baseline gap-2"><span class="font-extrabold text-indigo-700">v2.1.2</span><span class="text-xs font-bold text-slate-400">23.08.2026</span></div>
+                        <ul class="list-disc pl-5 mt-1 space-y-0.5">
+                            <li><b>Wichtig behoben:</b> <b>Das Kurs-Level ließ sich seit v2.1.0 nicht mehr umstellen.</b> Die Auswahlliste zeigte den neuen Kurs an, gespeichert wurde er nicht – die Zählung der E-Kurse und damit FOR und FOR-Q rechneten still mit dem alten Stand weiter. Wer zwischen dem 21. und 23. August mit dem Rechner gearbeitet und dabei Kurse umgestellt hat, sollte diese Schüler noch einmal ansehen.</li>
+                            <li><b>Wichtig behoben:</b> Ein Fach der Fächergruppe I, das aus der Excel-Datei <b>ohne Kursangabe</b> kam, wurde von <b>keiner</b> Bedingung geprüft – weder als E-Kurs noch als G-Kurs noch als übriges Fach. Eine ungenügende Leistung darin führte trotzdem zu FOR und FOR-Q. Ohne Angabe gilt jetzt der Grundkurs (§ 33 Abs. 2), also die strengere Schwelle „befriedigend".</li>
+                            <li><b>Behoben:</b> Umgekehrt wirkte eine im Export stehengebliebene Kursangabe auch dort, wo im Jahrgang gar nicht differenziert unterrichtet wird – die Anrechnung „mangelhaft im E-Kurs = ausreichend im G-Kurs" (§ 36 Abs. 2) milderte damit Noten in Fächern ohne E-Kurs. Das Kursniveau richtet sich jetzt nach dem Jahrgang, nicht nach der Datei.</li>
+                            <li><b>Behoben:</b> „1 E-Kurse, davon 1 Kernfächer" heißt jetzt „1 E-Kurs, davon 1 Kernfach".</li>
+                            <li><b>Neu:</b> 23 zusätzliche Tests – zur Zählung der Kurse, zu den Randfällen der Prüfung und ein Test, der sicherstellt, dass jede Schaltfläche der Oberfläche auch wirklich hinterlegt ist. Genau das hatte gefehlt.</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <div class="flex items-baseline gap-2"><span class="font-extrabold text-indigo-700">v2.1.1</span><span class="text-xs font-bold text-slate-400">23.08.2026</span></div>
+                        <ul class="list-disc pl-5 mt-1 space-y-0.5">
+                            <li><b>Neu:</b> Nach einem Excel-Import <b>klappt die Karte „Jahrgang &amp; Rechtsstand" zusammen</b> – die Datei hat beides ja festgelegt. Stehen bleibt eine Zeile mit dem, was gilt („Klasse 9 · Punkte 0–15 · altes Recht"); ein Klick auf „Ändern" holt die Schalter zurück und lässt sie dann offen. Das spart im Kopf der Schülerliste rund 200 Pixel und schützt die Einstellung vor versehentlichem Verstellen.</li>
+                            <li><b>Neu:</b> In Klasse 7 und 8 steht statt des dauerhaft ausgegrauten Knopfes „alt · Punkte" jetzt die Aussage im Klartext: „Neue Sek I-V – in Klasse 7 und 8 ohne Alternative (§ 59)". Die Begründung war vorher nur als Mauszeiger-Hinweis da und mit der Tastatur gar nicht erreichbar.</li>
+                            <li><b>Neu:</b> Jahrgang und Rechtsstand lassen sich mit den <b>Pfeiltasten</b> durchschalten und melden sich bei Screenreadern als das, was sie sind – eine Auswahl aus mehreren.</li>
+                        </ul>
+                    </div>
                     <div>
                         <div class="flex items-baseline gap-2"><span class="font-extrabold text-indigo-700">v2.1.0</span><span class="text-xs font-bold text-slate-400">21.08.2026</span></div>
                         <ul class="list-disc pl-5 mt-1 space-y-0.5">
@@ -892,7 +927,7 @@
                             </svg>
                         </button>
                     </h1>
-                    <p class="text-xs text-slate-400 mt-2 uppercase tracking-widest font-bold">Sek I <button onclick="openChangelog()" class="text-slate-300 normal-case tracking-normal font-semibold hover:text-indigo-600 cursor-pointer underline decoration-dotted underline-offset-2 transition-colors" title="Was ist neu? Changelog &amp; Kontakt">· v2.1.0</button></p>
+                    <p class="text-xs text-slate-400 mt-2 uppercase tracking-widest font-bold">Sek I <button onclick="openChangelog()" class="text-slate-300 normal-case tracking-normal font-semibold hover:text-indigo-600 cursor-pointer underline decoration-dotted underline-offset-2 transition-colors" title="Was ist neu? Changelog &amp; Kontakt">· v2.1.2</button></p>
                     <p id="metaDisplay" class="mt-1 text-sm font-bold text-indigo-900"></p>
                     <!-- Stufen-Indikator (nur Arbeitskopie; von stages.js gefüllt) -->
                     <div id="stageIndicator" class="hidden mt-2"></div>
@@ -914,37 +949,76 @@
                    Die Einstellung entscheidet ueber JEDE Zahl im Rechner und muss deshalb sofort
                    ins Auge fallen. Segment-Schalter mit 44px Hoehe auf dem Smartphone (h-11),
                    darunter auf 36px (sm:h-9) -- Touch-tauglich ohne den Kopfbereich zu sprengen.
+
+                   <details> statt <div>: Sobald eine Excel-Datei Jahrgang UND Rechtsstand
+                   festgelegt hat, ist das keine Bedienung mehr, sondern ein Befund -- die Karte
+                   klappt dann auf die Zusammenfassungszeile zusammen (refreshRegelwerkPanel).
+                   Bewusst das native Element: Tastaturbedienung, Rolle und Auf-/Zuklappen bringt
+                   der Browser mit, ohne aria-expanded von Hand oder eigenen Klapp-Code.
+
                    Nur in der Standalone sichtbar; im Mehrstufen-Build blendet
                    refreshRegelwerkPanel() die Karte aus. -->
-              <div id="regelwerkPanel" class="hidden mt-4 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm space-y-2.5">
+              <details id="regelwerkPanel" class="hidden mt-4 rounded-2xl border border-slate-200 bg-white shadow-sm" open>
+
+                  <summary id="regelwerkSummary"
+                      data-help="Jahrgang und Rechtsstand: aufklappen zum Ändern. Nach einem Import steht hier nur noch, was gilt."
+                      class="list-none cursor-pointer select-none rounded-2xl p-3 flex items-center justify-between gap-2 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400">
+                      <span class="min-w-0">
+                          <span class="block text-[11px] font-black uppercase tracking-widest text-slate-400">Jahrgang &amp; Rechtsstand</span>
+                          <!-- Kein truncate: eingeklappt ist diese Zeile die einzige Auskunft
+                               darueber, wonach gerechnet wird -- sie darf auf dem Smartphone
+                               umbrechen, aber nie abgeschnitten werden. -->
+                          <span id="regelwerkKurz" aria-live="polite" class="block text-sm font-bold leading-snug text-indigo-900"></span>
+                      </span>
+                      <span class="flex items-center gap-1 flex-shrink-0 text-[11px] font-bold text-slate-400">
+                          <span>Ändern</span>
+                          <svg class="w-4 h-4 chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                          </svg>
+                      </span>
+                  </summary>
+
+                  <div class="px-3 pt-3 pb-3 space-y-2.5">
 
                   <div>
                       <div class="flex items-baseline justify-between gap-2 mb-1">
-                          <span class="text-[11px] font-black uppercase tracking-widest text-slate-400">Jahrgang</span>
+                          <span id="jahrgangLabel" class="text-[11px] font-black uppercase tracking-widest text-slate-400">Jahrgang</span>
                           <span id="jahrgangHint" class="text-[11px] font-semibold text-slate-400 truncate"></span>
                       </div>
-                      <div class="grid grid-cols-4 gap-1 rounded-xl bg-slate-100 p-1">
-                          <button id="btnKlasse7" onclick="setKlassenstufe('7')"
+                      <!-- Eine Auswahl aus vieren: role="radiogroup" sagt das der assistiven
+                           Technik, vier blanke <button> taeten es nicht. Pfeiltasten-Navigation
+                           liefert bindSegTasten() (WAI-ARIA-Muster fuer Radiogruppen). -->
+                      <div id="jahrgangSegs" role="radiogroup" aria-labelledby="jahrgangLabel"
+                          class="grid grid-cols-4 gap-1 rounded-xl bg-slate-100 p-1">
+                          <button id="btnKlasse7" role="radio" onclick="setKlassenstufe('7')"
                               data-help="Klasse 7: ohne Chemie, PB, Musik und WP II; WAT nur über WP I. Nur neues Recht.">7</button>
-                          <button id="btnKlasse8" onclick="setKlassenstufe('8')"
+                          <button id="btnKlasse8" role="radio" onclick="setKlassenstufe('8')"
                               data-help="Klasse 8: mit Chemie, PB und Musik, ohne Kunst und ohne WP II. Nur neues Recht.">8</button>
-                          <button id="btnKlasse9" onclick="setKlassenstufe('9')"
+                          <button id="btnKlasse9" role="radio" onclick="setKlassenstufe('9')"
                               data-help="Klasse 9: mit Kunst und WP II, ohne Musik">9</button>
-                          <button id="btnKlasse10" onclick="setKlassenstufe('10')"
+                          <button id="btnKlasse10" role="radio" onclick="setKlassenstufe('10')"
                               data-help="Klasse 10: Musik kommt hinzu, die Kunstnote aus Klasse 9 wird übernommen">10</button>
                       </div>
                   </div>
 
                   <div>
-                      <span class="block text-[11px] font-black uppercase tracking-widest text-slate-400 mb-1">Rechtsstand
+                      <span id="rulesetLabel" class="block text-[11px] font-black uppercase tracking-widest text-slate-400 mb-1">Rechtsstand
                           <span class="wiki-term normal-case tracking-normal font-bold" data-term="sekiv">Sek I-V</span>
                       </span>
-                      <div class="grid grid-cols-2 gap-1 rounded-xl bg-slate-100 p-1">
-                          <button id="btnRulesetAlt" onclick="setRuleset('alt')"
+                      <div id="rulesetSegs" role="radiogroup" aria-labelledby="rulesetLabel"
+                          class="grid grid-cols-2 gap-1 rounded-xl bg-slate-100 p-1">
+                          <button id="btnRulesetAlt" role="radio" onclick="setRuleset('alt')"
                               data-help="Altes Recht: Punkte 0-15 mit Punktzielen und Ausgleich (gilt nach § 59 für Jg. 9/10 noch bis Juli 2028)">alt · Punkte</button>
-                          <button id="btnRulesetNeu" onclick="setRuleset('neu')"
+                          <button id="btnRulesetNeu" role="radio" onclick="setRuleset('neu')"
                               data-help="Neues Recht ab 01.08.2026: Noten 1-6, neue Fächergruppen, kein Ausgleich mehr">2026 · Noten</button>
                       </div>
+                      <!-- In Klasse 7/8 besteht die Wahl rechtlich nicht (§ 59 nennt als Uebergang
+                           nur Jg. 9/10). Statt eines dauerhaft gesperrten Knopfes -- dessen
+                           Begruendung im title-Attribut per Tastatur unerreichbar waere, weil
+                           disabled keinen Fokus nimmt -- steht dort die Aussage im Klartext. -->
+                      <p id="rulesetFest" class="hidden rounded-xl bg-slate-100 px-3 py-2 text-xs font-bold text-slate-600">
+                          Neue Sek I-V – in Klasse 7 und 8 ohne Alternative (§ 59).
+                      </p>
                       <p id="rulesetHint" class="mt-1.5 text-[11px] leading-snug text-slate-500"></p>
                   </div>
 
@@ -958,7 +1032,9 @@
                           <option value="BI">Biologie</option>
                       </select>
                   </div>
-              </div>
+
+                  </div>
+              </details>
             </div>
 
             <div id="sidebarContent"
@@ -1508,6 +1584,11 @@
         // nennt als Uebergang nur die Jahrgangsstufen 9 und 10.
         let klassenstufe = '9';
         const istNoteJahrgang = () => appStage === null && (klassenstufe === '7' || klassenstufe === '8');
+        // Steht Jahrgang UND Rechtsstand durch die importierte Datei fest? Dann ist die Karte im
+        // Kopf der Schuelerliste keine Bedienung mehr, sondern ein Befund: sie klappt auf eine
+        // Zeile zusammen (s. refreshRegelwerkPanel). Wer sie wieder aufklappt, will etwas aendern
+        // -- dann faellt das Flag zurueck auf false und die Karte bleibt offen.
+        let regelwerkFest = false;
         // Das EINE fachleistungsdifferenzierte naturwissenschaftliche Fach (§ 36 Abs. 1, neues Recht).
         // Die uebrigen NaWi-Faecher zaehlen dann zur Faechergruppe II.
         let nawiFgi = 'PH';
@@ -2133,7 +2214,22 @@
             };
 
             const diff = diffKeysNeu();
-            const fgiRes = fgiKeysNeu().map(k => eintrag(k, k === 'WPI' ? 'N' : ((g[k] && g[k].lvl) || 'G')));
+            // Das Kursniveau richtet sich nach § 33 Abs. 2, NICHT nach dem, was zufaellig in den
+            // Daten steht. Zwei Fallstricke, die beide aus echten Exportdateien stammen:
+            //   * Ein differenziertes Fach OHNE Kursangabe (Niveau 'N', so liefert der Export es,
+            //     wenn die Spalte kein "(FG)"/"(FE)" traegt) darf nicht in KEINEN Topf fallen:
+            //     § 37 prueft E-Kurse, G-Kurse und uebrige Faecher -- wer nirgends steht, wird von
+            //     keiner Bedingung geprueft. Ohne Angabe gilt deshalb der Grundkurs; das ist auch
+            //     die strengere Schwelle (befriedigend statt ausreichend).
+            //   * Umgekehrt darf eine stehengebliebene Kursangabe in einem Fach, das im Jahrgang
+            //     gar nicht differenziert unterrichtet wird, nichts bewirken -- die Dateien vom
+            //     Juni 2026 fuehren noch die alte Folge (Fremdsprache ab Jg. 7). Sonst wuerde die
+            //     E-/G-Anrechnung des § 36 Abs. 2 dort greifen, wo es gar keinen E-Kurs gibt.
+            const kursNiveau = (k) => {
+                if (!diff.includes(k)) return 'N';
+                return (g[k] && g[k].lvl === 'E') ? 'E' : 'G';
+            };
+            const fgiRes = fgiKeysNeu().map(k => eintrag(k, kursNiveau(k)));
             const fgiiRes = fgiiKeysNeu().map(k => eintrag(k, 'N'));
 
             // GEWI wie im alten Regelwerk als EIN Fach der Fächergruppe II (Lernbereich
@@ -2208,7 +2304,7 @@
             const eZweiBefriedigend = eBefriedigend >= 2;
             const forqEAusreichend = zeile('E-Kurse: alle mindestens ausreichend (Note 4)', eKurse, 4);
             const forqDetails = [
-                { label: `Mind. 3 E-Kurse, darunter 2× DE/EN/MA (${eKurse.length} E-Kurse, davon ${eKernFaecher.length} Kernfächer)${kursZusatz}`, ok: forqKursOk, status: kursStatus(forqKursOk) },
+                { label: `Mind. 3 E-Kurse, darunter 2× DE/EN/MA (${eKurse.length} E-Kurs${eKurse.length === 1 ? '' : 'e'}, davon ${eKernFaecher.length} Kernfach${eKernFaecher.length === 1 ? '' : 'er'})${kursZusatz}`, ok: forqKursOk, status: kursStatus(forqKursOk) },
                 { label: `E-Kurse: mind. 2× befriedigend (${eBefriedigend} vorhanden)${kursZusatz}`, ok: eZweiBefriedigend, status: kursOffen ? 'unknown' : (eZweiBefriedigend ? 'ok' : (offen(eKurse) ? 'unknown' : 'warning')) },
                 forqEAusreichend,
                 zeile('G-Kurse: mindestens befriedigend (Note 3)', gKurse, 3),
@@ -3002,29 +3098,78 @@
         const SEG_BASIS = 'h-11 sm:h-9 rounded-lg text-sm font-black transition-colors flex items-center justify-center';
         const SEG_AKTIV = SEG_BASIS + ' bg-indigo-600 text-white shadow-sm';
         const SEG_AUS   = SEG_BASIS + ' text-slate-500 hover:bg-white hover:text-indigo-600';
-        const SEG_SPERR = SEG_BASIS + ' text-slate-300 cursor-not-allowed';
+
+        // Pfeiltasten-Navigation innerhalb einer Segment-Gruppe (WAI-ARIA-Muster fuer
+        // Radiogruppen: die Auswahl folgt dem Fokus, Tab springt aus der Gruppe heraus).
+        // Wird einmal gebunden; das Markup der Karte wird nie neu erzeugt.
+        let segTastenGebunden = false;
+        const bindSegTasten = () => {
+            if (segTastenGebunden) return;
+            const handler = (e) => {
+                const radios = [...e.currentTarget.querySelectorAll('[role="radio"]')];
+                const i = radios.indexOf(document.activeElement);
+                if (i < 0) return;
+                let ziel = null;
+                if (e.key === 'ArrowRight' || e.key === 'ArrowDown') ziel = radios[(i + 1) % radios.length];
+                else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') ziel = radios[(i - 1 + radios.length) % radios.length];
+                else if (e.key === 'Home') ziel = radios[0];
+                else if (e.key === 'End') ziel = radios[radios.length - 1];
+                if (!ziel || ziel === document.activeElement) return;
+                e.preventDefault();
+                ziel.click();     // setKlassenstufe/setRuleset rendern neu, das Markup bleibt
+                ziel.focus();     // stehen -- der Fokus wird danach wieder gesetzt
+            };
+            ['jahrgangSegs', 'rulesetSegs'].forEach(id => {
+                const g = document.getElementById(id);
+                if (g) g.addEventListener('keydown', handler);
+            });
+            segTastenGebunden = true;
+        };
+
+        // Steht die Einstellung durch den Import fest, klappt die Karte auf ihre Zusammenfassung
+        // zusammen. Klappt sie jemand von Hand wieder auf, will er etwas aendern -- dann faellt
+        // regelwerkFest zurueck und sie bleibt offen. Das toggle-Ereignis feuert asynchron, auch
+        // beim programmatischen Setzen; ein Merker unterscheidet die beiden Faelle.
+        let panelSetztSelbst = false;
+        let letzterFestZustand = null;
+        const bindPanelToggle = (panel) => {
+            if (panel.dataset.toggleGebunden) return;
+            panel.dataset.toggleGebunden = '1';
+            panel.addEventListener('toggle', () => {
+                if (panelSetztSelbst) { panelSetztSelbst = false; return; }
+                if (panel.open) regelwerkFest = false;
+            });
+        };
 
         const refreshRegelwerkPanel = () => {
             const panel = document.getElementById('regelwerkPanel');
             if (!panel) return;
             panel.classList.toggle('hidden', appStage !== null || !!window.STUDENT_EXPORT_MODE);
-            const setBtn = (id, aktiv, gesperrt) => {
+            bindPanelToggle(panel);
+            bindSegTasten();
+            const setBtn = (id, aktiv) => {
                 const el = document.getElementById(id);
                 if (!el) return;
-                el.className = gesperrt ? SEG_SPERR : (aktiv ? SEG_AKTIV : SEG_AUS);
-                el.disabled = !!gesperrt;
+                el.className = aktiv ? SEG_AKTIV : SEG_AUS;
+                el.setAttribute('aria-checked', aktiv ? 'true' : 'false');
+                // Wanderndes tabindex: Tab fuehrt in die Gruppe auf die gewaehlte Option,
+                // innerhalb der Gruppe geht es mit den Pfeiltasten weiter.
+                el.tabIndex = aktiv ? 0 : -1;
             };
 
             ['7', '8', '9', '10'].forEach(j => setBtn('btnKlasse' + j, klassenstufe === j));
 
             // In Klasse 7/8 ist das alte Recht nicht mehr anwendbar (§ 59 nennt nur Jg. 9/10).
+            // Dort verschwindet die Wahl ganz und macht der Aussage im Klartext Platz.
             const nurNeu = istNoteJahrgang();
-            setBtn('btnRulesetAlt', ruleset === 'alt', nurNeu);
+            setBtn('btnRulesetAlt', ruleset === 'alt');
             setBtn('btnRulesetNeu', ruleset === 'neu');
+            const segs = document.getElementById('rulesetSegs');
+            if (segs) segs.classList.toggle('hidden', nurNeu);
+            const fest = document.getElementById('rulesetFest');
+            if (fest) fest.classList.toggle('hidden', !nurNeu);
             const altBtn = document.getElementById('btnRulesetAlt');
-            if (altBtn) altBtn.title = nurNeu
-                ? 'In Klasse 7/8 nicht mehr anwendbar (§ 59 nennt als Übergang nur Jg. 9/10)'
-                : 'Sek I-V 2007 – Punkte 0–15';
+            if (altBtn) altBtn.title = 'Sek I-V 2007 – Punkte 0–15';
 
             // Klartext statt Fachkuerzel: Was bedeutet die aktuelle Einstellung?
             const hint = document.getElementById('rulesetHint');
@@ -3047,6 +3192,39 @@
             // Ein NaWi wird erst ab Jahrgangsstufe 9 fachleistungsdifferenziert (§ 33 Abs. 2).
             const wrap = document.getElementById('nawiWrap');
             if (wrap) wrap.classList.toggle('hidden', ruleset !== 'neu' || nurNeu);
+
+            // Zusammenfassung fuer den eingeklappten Zustand: das ganze Regelwerk in einer Zeile.
+            const kurz = document.getElementById('regelwerkKurz');
+            if (kurz) {
+                // Knapp halten: der Paragraph steht aufgeklappt in rulesetHint.
+                const text = 'Klasse ' + klassenstufe + ' · ' + (istRegelwerkNeu()
+                    ? 'Noten 1–6 · Sek I-V 2026'
+                    : 'Punkte 0–15 · altes Recht');
+                // Nur bei echter Aenderung schreiben -- sonst meldet die aria-live-Region bei
+                // jedem Render dasselbe noch einmal.
+                if (kurz.textContent !== text) kurz.textContent = text;
+            }
+            // Offen/zu nur beim Wechsel setzen: sonst wuerde jeder Render ein von Hand
+            // geoeffnetes Panel wieder zuklappen.
+            if (regelwerkFest !== letzterFestZustand) {
+                letzterFestZustand = regelwerkFest;
+                if (panel.open === regelwerkFest) {
+                    panelSetztSelbst = true;
+                    panel.open = !regelwerkFest;
+                }
+            }
+        };
+
+        // Kurs-Level eines fachleistungsdifferenzierten Fachs umstellen (§ 33 Abs. 2).
+        // ACHTUNG: Diese Funktion ging in v2.1.0 beim Umbau der Nachbarfunktion verloren.
+        // Der Aufruf blieb im Markup stehen -- die Auswahlliste zeigte den neuen Kurs an,
+        // die Daten behielten den alten, und die E-Kurs-Zaehlung rechnete still falsch
+        // weiter. tests/test-ui-wiring.js prueft seitdem, dass es jeden Handler gibt.
+        window.updateLvl = (key, val) => {
+            const student = students.find(s => s.id === activeStudentId);
+            if (!student || !student.grades[key]) return;
+            student.grades[key].lvl = val;
+            renderMainView();
         };
 
         window.updateName = (val) => {
@@ -3208,6 +3386,9 @@
                                                       // aber frisch aus der Datei und sind stimmig.
                             }
                         }
+                        // Ab hier stehen Jahrgang und Rechtsstand durch die Datei fest -- die
+                        // Karte klappt beim naechsten Render auf ihre Zusammenfassung zusammen.
+                        regelwerkFest = true;
                         stilleUmstellung = false;
                     }
 
