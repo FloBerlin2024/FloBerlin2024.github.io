@@ -384,6 +384,9 @@
         #regelwerkPanel > summary::marker { content: ''; }
         #regelwerkPanel .chevron { transition: transform .2s ease; }
         #regelwerkPanel[open] .chevron { transform: rotate(180deg); }
+        /* Aufgeklappt sagen die Schalter darunter dasselbe wie die Statuszeile -- dann bleibt
+           oben nur die Ueberschrift und der Pfeil zum Zuklappen. */
+        #regelwerkPanel[open] #regelwerkKurz { display: none; }
         /* Eingeklappt ist die Zusammenfassung die ganze Karte -- dann bleiben alle vier
            Ecken rund; aufgeklappt sitzt der Inhalt darunter. */
         #regelwerkPanel[open] > summary { border-bottom: 1px solid #f1f5f9; }
@@ -735,7 +738,13 @@
                     </button>
                 </div>
                 <div class="p-6 overflow-y-auto custom-scrollbar space-y-4 text-sm text-slate-600 leading-relaxed">
-                    <p class="text-xs text-slate-400">Kurzfassung der Änderungen. Aktuelle Version: <span class="font-bold text-slate-600">v2.1.2</span>.</p>
+                    <p class="text-xs text-slate-400">Kurzfassung der Änderungen. Aktuelle Version: <span class="font-bold text-slate-600">v2.1.3</span>.</p>
+                    <div>
+                        <div class="flex items-baseline gap-2"><span class="font-extrabold text-indigo-700">v2.1.3</span><span class="text-xs font-bold text-slate-400">23.08.2026</span></div>
+                        <ul class="list-disc pl-5 mt-1 space-y-0.5">
+                            <li><b>Weniger Text in der Karte „Jahrgang &amp; Rechtsstand":</b> Aufgeklappt stehen oben nur noch die Überschrift und der Pfeil zum Zuklappen – die Statuszeile sagte dort dasselbe wie die Schalter darunter. Eingeklappt bleibt sie stehen, dort ist sie die einzige Auskunft. Der erklärende Kleintext unter den Schaltern ist weg; was der Rechtsstand bedeutet, steht im Regelwerk-Wiki unter „Sek I-V".</li>
+                        </ul>
+                    </div>
                     <div>
                         <div class="flex items-baseline gap-2"><span class="font-extrabold text-indigo-700">v2.1.2</span><span class="text-xs font-bold text-slate-400">23.08.2026</span></div>
                         <ul class="list-disc pl-5 mt-1 space-y-0.5">
@@ -927,7 +936,7 @@
                             </svg>
                         </button>
                     </h1>
-                    <p class="text-xs text-slate-400 mt-2 uppercase tracking-widest font-bold">Sek I <button onclick="openChangelog()" class="text-slate-300 normal-case tracking-normal font-semibold hover:text-indigo-600 cursor-pointer underline decoration-dotted underline-offset-2 transition-colors" title="Was ist neu? Changelog &amp; Kontakt">· v2.1.2</button></p>
+                    <p class="text-xs text-slate-400 mt-2 uppercase tracking-widest font-bold">Sek I <button onclick="openChangelog()" class="text-slate-300 normal-case tracking-normal font-semibold hover:text-indigo-600 cursor-pointer underline decoration-dotted underline-offset-2 transition-colors" title="Was ist neu? Changelog &amp; Kontakt">· v2.1.3</button></p>
                     <p id="metaDisplay" class="mt-1 text-sm font-bold text-indigo-900"></p>
                     <!-- Stufen-Indikator (nur Arbeitskopie; von stages.js gefüllt) -->
                     <div id="stageIndicator" class="hidden mt-2"></div>
@@ -965,17 +974,15 @@
                       class="list-none cursor-pointer select-none rounded-2xl p-3 flex items-center justify-between gap-2 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400">
                       <span class="min-w-0">
                           <span class="block text-[11px] font-black uppercase tracking-widest text-slate-400">Jahrgang &amp; Rechtsstand</span>
-                          <!-- Kein truncate: eingeklappt ist diese Zeile die einzige Auskunft
-                               darueber, wonach gerechnet wird -- sie darf auf dem Smartphone
-                               umbrechen, aber nie abgeschnitten werden. -->
+                          <!-- Die Statuszeile erscheint NUR eingeklappt (CSS: details[open] blendet
+                               sie aus). Aufgeklappt sagen die Schalter darunter dasselbe -- doppelt.
+                               Eingeklappt ist sie die einzige Auskunft darueber, wonach gerechnet
+                               wird; kein truncate, sie darf auf dem Smartphone umbrechen. -->
                           <span id="regelwerkKurz" aria-live="polite" class="block text-sm font-bold leading-snug text-indigo-900"></span>
                       </span>
-                      <span class="flex items-center gap-1 flex-shrink-0 text-[11px] font-bold text-slate-400">
-                          <span>Ändern</span>
-                          <svg class="w-4 h-4 chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                          </svg>
-                      </span>
+                      <svg class="w-5 h-5 chevron flex-shrink-0 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path>
+                      </svg>
                   </summary>
 
                   <div class="px-3 pt-3 pb-3 space-y-2.5">
@@ -1019,7 +1026,6 @@
                       <p id="rulesetFest" class="hidden rounded-xl bg-slate-100 px-3 py-2 text-xs font-bold text-slate-600">
                           Neue Sek I-V – in Klasse 7 und 8 ohne Alternative (§ 59).
                       </p>
-                      <p id="rulesetHint" class="mt-1.5 text-[11px] leading-snug text-slate-500"></p>
                   </div>
 
                   <div id="nawiWrap" class="flex items-center justify-between gap-3">
@@ -3171,15 +3177,6 @@
             const altBtn = document.getElementById('btnRulesetAlt');
             if (altBtn) altBtn.title = 'Sek I-V 2007 – Punkte 0–15';
 
-            // Klartext statt Fachkuerzel: Was bedeutet die aktuelle Einstellung?
-            const hint = document.getElementById('rulesetHint');
-            if (hint) {
-                hint.innerHTML = nurNeu
-                    ? 'Noten 1–6. In Klasse 7 und 8 gilt <b>nur</b> das neue Recht.'
-                    : (ruleset === 'neu'
-                        ? 'Noten 1–6 · neue Sek I-V, seit 1. August 2026.'
-                        : 'Punkte 0–15 · für Jg. 9/10 bis Juli 2028 (§ 59).');
-            }
             // Kurzform dessen, was den Jahrgang ausmacht -- macht Fehlgriffe sofort sichtbar.
             const jgHint = document.getElementById('jahrgangHint');
             if (jgHint) {
@@ -3196,7 +3193,7 @@
             // Zusammenfassung fuer den eingeklappten Zustand: das ganze Regelwerk in einer Zeile.
             const kurz = document.getElementById('regelwerkKurz');
             if (kurz) {
-                // Knapp halten: der Paragraph steht aufgeklappt in rulesetHint.
+                // Knapp halten: den Paragraphen erklaert das Regelwerk-Wiki (Begriff „Sek I-V“).
                 const text = 'Klasse ' + klassenstufe + ' · ' + (istRegelwerkNeu()
                     ? 'Noten 1–6 · Sek I-V 2026'
                     : 'Punkte 0–15 · altes Recht');
