@@ -196,6 +196,43 @@
                 background: white !important;
             }
 
+            /* Kein Aussenrand/keine Mindesthoehe am Dokument selbst: Schon ein paar
+               Millimeter darunter reichen, damit der Druck eine zweite Seite anlegt. */
+            html,
+            body {
+                margin: 0 !important;
+                padding: 0 !important;
+                height: auto !important;
+            }
+
+            /* EINSEITIGE Drucke (Einzelbericht) hart auf eine Seite zwingen.
+               .print-single setzt report.js beim Drucken eines einzelnen Berichts;
+               Klassenlisten (mehrseitig) bekommen die Klasse nicht.
+
+               100vh ist im Druck die TATSAECHLICH bedruckbare Hoehe – egal welches
+               Papier und welche Raender der Druckdialog vorgibt (Android nutzt eigene,
+               oft ~12,7mm). Der Kasten ist damit exakt eine Seite hoch, overflow:hidden
+               schneidet alles ab, was rechnerisch darueber hinausragt. Eine leere
+               zweite Seite kann so nicht mehr entstehen. */
+            #printReportTemplate.print-single {
+                height: 100vh !important;
+                max-height: 100vh !important;
+                overflow: hidden !important;
+            }
+
+            #printReportTemplate.print-single .report-page {
+                height: 100% !important;
+                max-height: 100% !important;
+                overflow: hidden !important;
+            }
+
+            /* Nach dem letzten Element keinen Seitenumbruch erzwingen lassen. */
+            #printReportTemplate>*:last-child {
+                break-after: avoid-page;
+                page-break-after: avoid;
+                margin-bottom: 0 !important;
+            }
+
             body>*:not(#printReportTemplate) {
                 display: none !important;
             }
@@ -352,7 +389,11 @@
     <div id="compatWarn" class="no-print" style="display:none"></div>
 
     <!-- Toast-Hinweise -->
-    <div id="toastContainer" class="fixed top-4 right-4 z-[80] flex flex-col gap-2 items-end no-print"></div>
+    <!-- Hinweise erscheinen IMMER oben mittig: dort sucht das Auge sie, unabhaengig davon, ob
+         gerade die Sidebar, die Klassenansicht oder ein Overlay offen ist. pointer-events-none am
+         Streifen, damit er nichts blockiert; der Hinweis selbst bleibt anklickbar. -->
+    <div id="toastContainer"
+        class="fixed top-4 left-1/2 -translate-x-1/2 z-[80] w-full max-w-md px-4 flex flex-col gap-2 items-center no-print pointer-events-none"></div>
 
     <!-- Mehrstufen-Startbildschirm (nur Arbeitskopie; Inhalt wird von stages.js gefüllt) -->
     <div id="stageStartScreen" class="hidden fixed inset-0 z-[60] flex items-center justify-center p-4 no-print"></div>
@@ -426,6 +467,8 @@
                 <div class="mt-3 flex flex-wrap gap-1.5">
                     <button onclick="wikiGoto('wiki-grundlagen')" class="px-3 py-1 text-xs font-bold rounded-full bg-white border border-slate-200 text-slate-600 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200 transition-colors">Grundlagen</button>
                     <button onclick="wikiGoto('wiki-punkte')" class="px-3 py-1 text-xs font-bold rounded-full bg-white border border-slate-200 text-slate-600 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200 transition-colors">Punkte &amp; Noten</button>
+                    <button onclick="wikiGoto('wiki-sekiv')" class="px-3 py-1 text-xs font-bold rounded-full bg-white border border-slate-200 text-slate-600 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200 transition-colors">Sek I-V 2026</button>
+                    <button onclick="wikiGoto('wiki-versetzung')" class="px-3 py-1 text-xs font-bold rounded-full bg-white border border-slate-200 text-slate-600 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200 transition-colors">Versetzung</button>
                     <button onclick="wikiGoto('wiki-bbr')" class="px-3 py-1 text-xs font-bold rounded-full bg-white border border-slate-200 text-slate-600 hover:bg-amber-50 hover:text-amber-600 hover:border-amber-200 transition-colors">BBR/EBR</button>
                     <button onclick="wikiGoto('wiki-for')" class="px-3 py-1 text-xs font-bold rounded-full bg-white border border-slate-200 text-slate-600 hover:bg-emerald-50 hover:text-emerald-600 hover:border-emerald-200 transition-colors">FOR</button>
                     <button onclick="wikiGoto('wiki-forq')" class="px-3 py-1 text-xs font-bold rounded-full bg-white border border-slate-200 text-slate-600 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200 transition-colors">FOR-Q</button>
@@ -437,19 +480,54 @@
             <div id="wikiContent" class="p-5 sm:p-6 overflow-y-auto custom-scrollbar space-y-6 text-sm text-slate-600 leading-relaxed">
                 <section id="wiki-grundlagen">
                     <h4 class="text-base font-bold text-slate-800 mb-2">Grundlagen</h4>
-                    <p>Die Fächer sind in zwei Gruppen aufgeteilt. <span class="wiki-term" data-term="fg1">Fächergruppe I</span>
-                        (differenzierte Kursfächer: DE, MA, EN, CH, PH, <span class="wiki-term" data-term="wp1">WP I</span>) wird auf
-                        <span class="wiki-term" data-term="e-kurs">E-</span> oder <span class="wiki-term" data-term="g-kurs">G-Kurs</span>-Niveau
-                        unterrichtet. <span class="wiki-term" data-term="fg2">Fächergruppe II</span>
-                        (BIO, WAT, GEWI, LER, KU, SP, <span class="wiki-term" data-term="wp2">WP II</span>) ist nicht kursdifferenziert.</p>
-                    <p class="mt-2">Jede Leistung zählt als <span class="wiki-term" data-term="punkte">Punktzahl (0–15)</span>, die einer Note (1–6)
-                        entspricht. Erfüllt ein Fach eine Mindestbedingung nicht, gilt das als <span class="wiki-term" data-term="ausfall">Ausfall</span>;
-                        je Abschluss ist nur eine begrenzte Zahl an Ausfällen durch <span class="wiki-term" data-term="ausgleich">Ausgleich</span> zulässig.</p>
+                    <p>Die Fächer sind in zwei Gruppen aufgeteilt. Wie sie sich zusammensetzen, hängt vom
+                        <span class="wiki-term" data-term="sekiv">Rechtsstand</span> ab:</p>
+                    <div class="overflow-x-auto mt-2">
+                        <table class="w-full text-xs border border-slate-200 rounded-lg">
+                            <thead>
+                                <tr class="bg-slate-50 text-slate-500 text-left">
+                                    <th class="px-3 py-2 font-bold"></th>
+                                    <th class="px-3 py-2 font-bold">alt · Punkte</th>
+                                    <th class="px-3 py-2 font-bold">2026 · Noten</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                <tr>
+                                    <td class="px-3 py-2 font-semibold"><span class="wiki-term" data-term="fg1">Fächergruppe I</span></td>
+                                    <td class="px-3 py-2">DE, MA, EN, CH, PH, <span class="wiki-term" data-term="wp1">WP I</span></td>
+                                    <td class="px-3 py-2">DE, MA, EN, <b>ein</b> NaWi, <span class="wiki-term" data-term="wp1">WP I</span></td>
+                                </tr>
+                                <tr>
+                                    <td class="px-3 py-2 font-semibold"><span class="wiki-term" data-term="fg2">Fächergruppe II</span></td>
+                                    <td class="px-3 py-2">BIO, WAT, <span class="wiki-term" data-term="gewi">GEWI</span>, LER, KU, SP, <span class="wiki-term" data-term="wp2">WP II</span></td>
+                                    <td class="px-3 py-2">alle übrigen Fächer – auch die weiteren Naturwissenschaften</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-3 py-2 font-semibold">Bewertung</td>
+                                    <td class="px-3 py-2"><span class="wiki-term" data-term="punkte">Punkte 0–15</span></td>
+                                    <td class="px-3 py-2">Noten 1–6</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-3 py-2 font-semibold"><span class="wiki-term" data-term="ausgleich">Ausgleich</span></td>
+                                    <td class="px-3 py-2">bis zu 2 <span class="wiki-term" data-term="ausfall">Ausfälle</span></td>
+                                    <td class="px-3 py-2"><b>gestrichen</b> – jede Bedingung muss für sich erfüllt sein</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="mt-2">Die Fächer der Fächergruppe I werden auf zwei Niveaus unterrichtet
+                        (<span class="wiki-term" data-term="e-kurs">E-Kurs</span> und
+                        <span class="wiki-term" data-term="g-kurs">G-Kurs</span>) – wann welches Fach dazukommt, regelt die
+                        <span class="wiki-term" data-term="differenzierung">Fachleistungsdifferenzierung</span>.
+                        In den Jahrgangsstufen 7 und 8 geht es um die <span class="wiki-term" data-term="versetzung">Versetzung</span>;
+                        Abschlüsse werden erst am Ende der Jahrgangsstufe 10 vergeben.</p>
                 </section>
 
                 <section id="wiki-punkte">
-                    <h4 class="text-base font-bold text-slate-800 mb-2">Punkte &amp; Noten</h4>
-                    <p class="mb-3">Die Umrechnung Punkte → Note hängt vom Niveau ab:</p>
+                    <h4 class="text-base font-bold text-slate-800 mb-2">Punkte &amp; Noten <span class="text-xs font-bold uppercase tracking-widest text-slate-400">nur altes Recht</span></h4>
+                    <p class="mb-3">Das Punktesystem 0–15 gilt nur noch übergangsweise für die Jahrgangsstufen 9 und 10
+                        (§ 59). Im <span class="wiki-term" data-term="sekiv">neuen Recht</span> wird direkt mit Noten 1–6
+                        bewertet – dann entfällt diese Umrechnung. Sie hängt vom Niveau ab:</p>
                     <div class="overflow-x-auto">
                         <table class="w-full text-xs border border-slate-200 rounded-lg">
                             <thead>
@@ -470,7 +548,9 @@
                             </tbody>
                         </table>
                     </div>
-                    <p class="mt-2 text-xs text-slate-400">Ein gleicher Punktwert entspricht auf E-Niveau einer besseren Note als auf G-Niveau.</p>
+                    <p class="mt-2 text-xs text-slate-400">Ein gleicher Punktwert entspricht auf E-Niveau einer besseren Note als auf G-Niveau.
+                        Im neuen Recht wirkt das Niveau nicht mehr über die Umrechnung, sondern über unterschiedliche
+                        Anforderungen: im E-Kurs genügt „ausreichend", im G-Kurs ist „befriedigend" verlangt.</p>
                 </section>
 
                 <section id="wiki-bbr">
@@ -481,6 +561,14 @@
                         <li>höchstens <strong>2× Note 5</strong> und <strong>keine Note 6</strong></li>
                     </ul>
                     <p class="mt-2 text-xs text-slate-400">Die nötigen Punktsummen passen sich der Anzahl bewerteter Fächer an.</p>
+                    <div class="mt-3 rounded-xl border border-indigo-200 bg-indigo-50/50 p-3">
+                        <p class="text-xs font-bold uppercase tracking-wider text-indigo-700 mb-1">Neues Recht ab 01.08.2026 (<span class="wiki-term" data-term="sekiv">Sek I-V</span> 2026)</p>
+                        <ul class="list-disc pl-5 space-y-1">
+                            <li><span class="wiki-term" data-term="fg1">FG I</span>: in <strong>allen</strong> Fächern mindestens <strong>ausreichend</strong> (Note 4)</li>
+                            <li><span class="wiki-term" data-term="fg2">FG II</span>: höchstens <strong>zwei</strong> mangelhafte Leistungen und <strong>keine</strong> ungenügende</li>
+                            <li>keine Punktsummen mehr, <strong>kein <span class="wiki-term" data-term="ausgleich">Ausgleich</span></strong> (§ 36 Abs. 3, § 37 Abs. 2)</li>
+                        </ul>
+                    </div>
                 </section>
 
                 <section id="wiki-for">
@@ -492,6 +580,14 @@
                         <li><span class="wiki-term" data-term="fg2">FG II</span>: alle ≥ 4 Punkte, davon mind. 2× ≥ 7 Punkte</li>
                         <li>keine Note 6; insgesamt höchstens <strong>2 <span class="wiki-term" data-term="ausfall">Ausfälle</span></strong></li>
                     </ul>
+                    <div class="mt-3 rounded-xl border border-indigo-200 bg-indigo-50/50 p-3">
+                        <p class="text-xs font-bold uppercase tracking-wider text-indigo-700 mb-1">Neues Recht ab 01.08.2026 (<span class="wiki-term" data-term="sekiv">Sek I-V</span> 2026)</p>
+                        <ul class="list-disc pl-5 space-y-1">
+                            <li>in Klasse 10 mindestens <strong>2 <span class="wiki-term" data-term="e-kurs">E-Kurse</span></strong>, davon mindestens einer in <strong>DE oder MA</strong></li>
+                            <li>in den <span class="wiki-term" data-term="e-kurs">E-Kursen</span> mindestens <strong>ausreichend</strong>, in den <span class="wiki-term" data-term="g-kurs">G-Kursen</span> mindestens <strong>befriedigend</strong></li>
+                            <li>in allen übrigen Fächern mindestens <strong>ausreichend</strong> (§ 37 Abs. 3)</li>
+                        </ul>
+                    </div>
                 </section>
 
                 <section id="wiki-forq">
@@ -503,6 +599,96 @@
                         <li><span class="wiki-term" data-term="fg2">FG II</span>: alle ≥ 4 Punkte; keine Note 6</li>
                         <li>insgesamt höchstens <strong>2 <span class="wiki-term" data-term="ausfall">Ausfälle</span></strong> (bei 2 Ausfällen in FG I keiner unter 4 Punkte)</li>
                     </ul>
+                    <div class="mt-3 rounded-xl border border-indigo-200 bg-indigo-50/50 p-3">
+                        <p class="text-xs font-bold uppercase tracking-wider text-indigo-700 mb-1">Neues Recht ab 01.08.2026 (<span class="wiki-term" data-term="sekiv">Sek I-V</span> 2026)</p>
+                        <ul class="list-disc pl-5 space-y-1">
+                            <li>mindestens <strong>3 <span class="wiki-term" data-term="e-kurs">E-Kurse</span></strong>, darunter zwei aus <strong>DE, erster Fremdsprache und MA</strong></li>
+                            <li>in mindestens <strong>zwei</strong> E-Kursen mindestens <strong>befriedigend</strong>, im dritten mindestens ausreichend</li>
+                            <li>im <span class="wiki-term" data-term="g-kurs">G-Kurs</span> mindestens <strong>befriedigend</strong>, in allen übrigen Fächern mindestens ausreichend (§ 37 Abs. 4)</li>
+                        </ul>
+                    </div>
+                </section>
+
+                <section id="wiki-sekiv">
+                    <h4 class="text-base font-bold text-slate-800 mb-2">Zwei Rechtsstände: alte und neue Sek I-V</h4>
+                    <p>Zum <strong>1. August 2026</strong> ist die neu gefasste Sekundarstufe I-Verordnung in Kraft getreten
+                        (vom 6. August 2026, GVBl.II/26 Nr. 35). Sie bewertet in der Gesamtschule <strong>nur noch mit Noten 1–6</strong> –
+                        das Punktesystem 0–15 und alle Ausgleichsregelungen entfallen.</p>
+                    <p class="mt-2">Nach <strong>§ 59</strong> gilt für alle, die sich im Schuljahr 2026/27 in Jahrgangsstufe 9 oder 10
+                        und im Schuljahr 2027/28 in Jahrgangsstufe 10 befinden, <strong>ausschließlich das bisherige Recht</strong>.
+                        Deshalb rechnet dieses Programm auf Wunsch weiter nach altem Recht: oben links lässt sich der Rechtsstand
+                        umschalten („alt · Punkte" / „2026 · Noten"). Der gewählte Stand steht in jedem Ausdruck.</p>
+                    <p class="mt-2">In den Jahrgangsstufen 7 und 8 geht es um die <span class="wiki-term" data-term="versetzung">Versetzung</span>
+                        nach § 36 – dort steht auch, warum die Anrechnung des Kursniveaus nur bei ihr gilt und nicht bei den Abschlüssen.</p>
+                    <p class="mt-2">Weitere Neuerungen betreffen die <span class="wiki-term" data-term="fg1">Fächergruppen</span>
+                        (§ 36 Abs. 1: Deutsch, Mathematik, erste Fremdsprache, <strong>ein</strong> naturwissenschaftliches Fach, WP I)
+                        und die <span class="wiki-term" data-term="differenzierung">Fachleistungsdifferenzierung</span>
+                        (§ 33 Abs. 2: DE und MA ab dem 2. Halbjahr der Jahrgangsstufe 7, erste Fremdsprache ab Jahrgangsstufe 8,
+                        ein naturwissenschaftliches Fach ab Jahrgangsstufe 9).</p>
+
+                    <p class="mt-3 font-bold text-slate-700">Welche Fächer zählen in welchem Jahrgang?</p>
+                    <div class="overflow-x-auto mt-1">
+                        <table class="w-full text-xs border border-slate-200 rounded-lg">
+                            <thead>
+                                <tr class="bg-slate-50 text-slate-500 text-left">
+                                    <th class="px-3 py-2 font-bold">Fach</th>
+                                    <th class="px-3 py-2 font-bold text-center">Kl. 7</th>
+                                    <th class="px-3 py-2 font-bold text-center">Kl. 8</th>
+                                    <th class="px-3 py-2 font-bold text-center">Kl. 9</th>
+                                    <th class="px-3 py-2 font-bold text-center">Kl. 10</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100 text-center">
+                                <tr><td class="px-3 py-1.5 text-left font-semibold">Chemie · Politische Bildung</td><td>–</td><td>✓</td><td>✓</td><td>✓</td></tr>
+                                <tr><td class="px-3 py-1.5 text-left font-semibold">WAT</td><td class="text-[10px]">nur über WP I</td><td>✓</td><td>✓</td><td>✓</td></tr>
+                                <tr><td class="px-3 py-1.5 text-left font-semibold">Kunst</td><td>✓</td><td>–</td><td>✓</td><td class="text-[10px]">Note aus Kl. 9</td></tr>
+                                <tr><td class="px-3 py-1.5 text-left font-semibold">Musik</td><td>–</td><td>✓</td><td>–</td><td>✓</td></tr>
+                                <tr><td class="px-3 py-1.5 text-left font-semibold"><span class="wiki-term" data-term="wp2">WP II</span></td><td>–</td><td>–</td><td>✓</td><td>✓</td></tr>
+                                <tr><td class="px-3 py-1.5 text-left font-semibold">Kurse (G/E)</td><td class="text-[10px]">DE, MA</td><td class="text-[10px]">+ EN</td><td class="text-[10px]">+ 1 NaWi</td><td class="text-[10px]">+ 1 NaWi</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="mt-1 text-xs text-slate-400">Der <span class="wiki-term" data-term="gewi">GEWI</span>-Durchschnitt entsteht in
+                        Jahrgangsstufe 7 nur aus Erdkunde und Geschichte – Politische Bildung gibt es dort noch nicht.</p>
+
+                    <p class="mt-3 font-bold text-slate-700">Weitere Änderungen (ohne Einfluss auf die Berechnung)</p>
+                    <ul class="list-disc pl-5 space-y-1 mt-1">
+                        <li><span class="wiki-term" data-term="nachteilsausgleich">Nachteilsausgleich</span> neu in § 13 Abs. 5</li>
+                        <li><span class="wiki-term" data-term="asv">Arbeits- und Sozialverhalten</span>: acht Kategorien, verbindlich am Ende der Jahrgangsstufe 9 (§ 14)</li>
+                        <li><span class="wiki-term" data-term="nachpruefung">Nachprüfung</span> am Ende der Jahrgangsstufe 10 (§ 16)</li>
+                        <li><span class="wiki-term" data-term="sprachpruefung">Sprachfeststellungsprüfung</span> und Einzelfall-Ausnahmen (§ 58)</li>
+                        <li>Schülerinnen und Schüler im Bildungsgang zur allgemeinen Hochschulreife nehmen nicht an den Prüfungen der Jahrgangsstufe 10 teil (§ 21 Abs. 2)</li>
+                    </ul>
+                </section>
+
+                <section id="wiki-versetzung">
+                    <h4 class="text-base font-bold text-slate-800 mb-2"><span class="wiki-term" data-term="versetzung">Versetzung</span> — § 36</h4>
+                    <p>In den Jahrgangsstufen 7 und 8 ist die Versetzung die eigentliche Entscheidung; der Rechner zeigt sie
+                        dort als eigene Karte. Ein Abschluss wird erst am Ende der Jahrgangsstufe 10 vergeben.</p>
+
+                    <p class="mt-3 font-bold text-slate-700">In die Jahrgangsstufe 8 oder 9 (§ 36 Abs. 2)</p>
+                    <ul class="list-disc pl-5 space-y-1 mt-1">
+                        <li>in <strong>jedem</strong> Fach mindestens ausreichende Leistungen <em>oder</em></li>
+                        <li>bei sonst mindestens ausreichenden Leistungen höchstens <strong>zwei mangelhafte</strong></li>
+                        <li>in <strong>Deutsch und Mathematik</strong> muss es mindestens ausreichend sein</li>
+                    </ul>
+                    <p class="mt-2 rounded-xl border border-amber-200 bg-amber-50/60 p-3 text-sm">
+                        <strong>Nur hier</strong> gilt die Anrechnung des Kursniveaus: eine <strong>mangelhafte</strong> Leistung im
+                        <span class="wiki-term" data-term="e-kurs">E-Kurs</span> entspricht einer <strong>ausreichenden</strong> im
+                        <span class="wiki-term" data-term="g-kurs">G-Kurs</span>, eine <strong>ungenügende</strong> im E-Kurs einer
+                        <strong>mangelhaften</strong> im G-Kurs. Bei der Versetzung in die Jahrgangsstufe 10 und bei den
+                        Abschlüssen gibt es diese Anrechnung <strong>nicht</strong>.
+                    </p>
+
+                    <p class="mt-3 font-bold text-slate-700">In die Jahrgangsstufe 10 (§ 36 Abs. 3)</p>
+                    <ul class="list-disc pl-5 space-y-1 mt-1">
+                        <li>in den Fächern der <span class="wiki-term" data-term="fg1">Fächergruppe I</span> mindestens ausreichende Leistungen</li>
+                        <li>in höchstens <strong>zwei</strong> Fächern der <span class="wiki-term" data-term="fg2">Fächergruppe II</span> mangelhafte
+                            und <strong>keine</strong> ungenügende Leistung</li>
+                    </ul>
+                    <p class="mt-2 text-xs text-slate-400">Mit dieser Versetzung wird zugleich die
+                        <span class="wiki-term" data-term="bbr">Berufsbildungsreife</span> erworben; dieselben Bedingungen am Ende der
+                        Jahrgangsstufe 10 ergeben die erweiterte Berufsbildungsreife (§ 37 Abs. 2).</p>
                 </section>
 
                 <section id="wiki-glossar">
@@ -532,7 +718,38 @@
                     </button>
                 </div>
                 <div class="p-6 overflow-y-auto custom-scrollbar space-y-4 text-sm text-slate-600 leading-relaxed">
-                    <p class="text-xs text-slate-400">Kurzfassung der Änderungen. Aktuelle Version: <span class="font-bold text-slate-600">v1.14.3</span>.</p>
+                    <p class="text-xs text-slate-400">Kurzfassung der Änderungen. Aktuelle Version: <span class="font-bold text-slate-600">v2.1.0</span>.</p>
+                    <div>
+                        <div class="flex items-baseline gap-2"><span class="font-extrabold text-indigo-700">v2.1.0</span><span class="text-xs font-bold text-slate-400">21.08.2026</span></div>
+                        <ul class="list-disc pl-5 mt-1 space-y-0.5">
+                            <li><b>Neu:</b> <b>Ein Rechner für die Klassen 7 bis 10.</b> Der Jahrgangsschalter hat jetzt vier Stufen; jede bringt genau den Fächerkanon mit, der auch in der Webschule-Exportdatei steht (Kl. 7 ohne Chemie/PB/Musik und WAT nur über WP I, Kl. 8 ohne Kunst, Kl. 9 ohne Musik, Kl. 10 mit Musik).</li>
+                            <li><b>Neu:</b> In Klasse 7 und 8 wird die <b>Versetzung nach § 36 Abs. 2</b> berechnet – mit der dort (und nur dort) geltenden Anrechnung „mangelhaft im E-Kurs = ausreichend im G-Kurs". Darunter stehen die Abschluss-Karten als ausdrücklich benannte <b>Prognose</b>, dazu die Durchschnittsnote.</li>
+                            <li><b>Neu:</b> Kursfelder erscheinen nur, wo wirklich differenziert wird (§ 33 Abs. 2): Deutsch und Mathematik ab Klasse 7, Englisch ab Klasse 8, ein naturwissenschaftliches Fach ab Klasse 9.</li>
+                            <li><b>Neu:</b> Beim Excel-Import stellt sich der Jahrgang automatisch aus der Klassenangabe ein; für Klasse 7/8 zusätzlich der Rechtsstand, denn dort gilt nur noch die neue Sek I-V.</li>
+                            <li><b>Neu:</b> Beim Excel-Import erkennt der Rechner selbst, ob die Datei Punkte (0–15) oder Noten (1–6) enthält, und stellt den Rechtsstand in Klasse 9/10 entsprechend ein. Was erkannt wurde, steht in der Rückmeldung.</li>
+                            <li><b>Neu:</b> Hinweise erscheinen jetzt oben in der Mitte – gut sichtbar, egal welche Ansicht gerade offen ist.</li>
+                            <li><b>Neu:</b> Das Regelwerk-Wiki erklärt jetzt beide Rechtsstände nebeneinander – mit eigenem Abschnitt zur Versetzung (§ 36), einer Fächertabelle für die Klassen 7 bis 10 und sieben neuen Glossar-Begriffen.</li>
+                            <li><b>Neu:</b> Jahrgang und Rechtsstand stehen als eigene Karte oben in der Schülerliste – große, gut treffbare Schaltflächen (auch auf dem Smartphone) und darunter im Klartext, was die Einstellung bedeutet.</li>
+                            <li><b>Behoben:</b> Die Kunstnote in Klasse 10 lässt sich jetzt eintragen (der Export liefert die Spalte leer). Sobald eine Note darin steht, ist das Feld gesperrt – das Schloss gibt es bei Bedarf wieder frei.</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <div class="flex items-baseline gap-2"><span class="font-extrabold text-indigo-700">v2.0.0</span><span class="text-xs font-bold text-slate-400">21.08.2026</span></div>
+                        <ul class="list-disc pl-5 mt-1 space-y-0.5">
+                            <li><b>Neu:</b> Die <b>Sek I-V vom 6. August 2026</b> ist eingebaut. Oben links lässt sich der Rechtsstand umschalten: „alt · Punkte" (0–15, mit Ausgleich) oder „2026 · Noten" (1–6, ohne Ausgleich). Der gewählte Stand steht in jedem Ausdruck.</li>
+                            <li><b>Wichtig:</b> Für alle, die 2026/27 in Klasse 9 oder 10 und 2027/28 in Klasse 10 sind, gilt nach § 59 <b>weiterhin das alte Recht</b> – dort bitte nichts umstellen.</li>
+                            <li><b>Neu:</b> Im neuen Recht umfasst die Fächergruppe I nur noch DE, MA, EN, <b>ein</b> naturwissenschaftliches Fach (wählbar) und WP I; die übrigen Naturwissenschaften zählen zur Fächergruppe II.</li>
+                            <li><b>Neu:</b> Jahrgangsschalter 9/10. In Klasse 10 kommt <b>Musik</b> hinzu, die <b>Kunstnote aus Klasse 9</b> bleibt stehen und ist schreibgeschützt.</li>
+                            <li><b>Neu:</b> Die Kurswechsel-Empfehlung (↑/↓) arbeitet im neuen Recht mit den Noten; die Beispielschüler stehen je nach Rechtsstand in Punkten oder in vergleichbaren Noten.</li>
+                            <li><b>Unverändert:</b> Die Mehrstufen-Arbeitskopie (Klassen 7–13 mit Prüfungsrechner) rechnet weiterhin ausschließlich nach altem Recht.</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <div class="flex items-baseline gap-2"><span class="font-extrabold text-indigo-700">v1.14.4</span><span class="text-xs font-bold text-slate-400">19.08.2026</span></div>
+                        <ul class="list-disc pl-5 mt-1 space-y-0.5">
+                            <li><b>Behoben:</b> Im Druckmenü des Smartphones erschien trotz passender Formatierung eine leere zweite Seite. Ein Einzelbericht wird jetzt fest auf genau eine Seite begrenzt – mehrseitige Ausdrucke (alle Berichte, Klassenliste) bleiben unverändert.</li>
+                        </ul>
+                    </div>
                     <div>
                         <div class="flex items-baseline gap-2"><span class="font-extrabold text-indigo-700">v1.14.3</span><span class="text-xs font-bold text-slate-400">19.08.2026</span></div>
                         <ul class="list-disc pl-5 mt-1 space-y-0.5">
@@ -659,8 +876,11 @@
 
         <!-- Sidebar: Schülerliste -->
         <aside class="w-full lg:w-96 bg-white border-r border-slate-200 flex flex-col shrink-0 overflow-hidden">
-            <div class="p-6 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
-                <div>
+            <!-- p-4 auf dem Smartphone (statt p-6): der Kopf traegt dort die Einstellungskarte und
+                 soll trotzdem nicht den halben Bildschirm fuellen. -->
+            <div class="p-4 sm:p-6 border-b border-slate-100 bg-slate-50/50">
+              <div class="flex items-start justify-between gap-3">
+                <div class="min-w-0">
                     <h1 class="text-xl font-extrabold text-indigo-900 flex items-center gap-2">
                         <span class="bg-indigo-600 text-white p-1 rounded-lg text-base">TGS</span>
                         Abschlussrechner
@@ -672,10 +892,11 @@
                             </svg>
                         </button>
                     </h1>
-                    <p class="text-xs text-slate-400 mt-2 uppercase tracking-widest font-bold">Sek I <button onclick="openChangelog()" class="text-slate-300 normal-case tracking-normal font-semibold hover:text-indigo-600 cursor-pointer underline decoration-dotted underline-offset-2 transition-colors" title="Was ist neu? Changelog &amp; Kontakt">· v1.14.3</button></p>
+                    <p class="text-xs text-slate-400 mt-2 uppercase tracking-widest font-bold">Sek I <button onclick="openChangelog()" class="text-slate-300 normal-case tracking-normal font-semibold hover:text-indigo-600 cursor-pointer underline decoration-dotted underline-offset-2 transition-colors" title="Was ist neu? Changelog &amp; Kontakt">· v2.1.0</button></p>
                     <p id="metaDisplay" class="mt-1 text-sm font-bold text-indigo-900"></p>
                     <!-- Stufen-Indikator (nur Arbeitskopie; von stages.js gefüllt) -->
                     <div id="stageIndicator" class="hidden mt-2"></div>
+
                 </div>
                 <div class="flex items-center gap-1">
                 <button onclick="toggleMobileSidebar()"
@@ -686,6 +907,58 @@
                     </svg>
                 </button>
                 </div>
+              </div>
+
+              <!-- Rechtsstand, Jahrgang, differenziertes NaWi-Fach.
+                   Eigene Karte im Stil der uebrigen Flaechen (weiss, rounded-2xl, feiner Rand):
+                   Die Einstellung entscheidet ueber JEDE Zahl im Rechner und muss deshalb sofort
+                   ins Auge fallen. Segment-Schalter mit 44px Hoehe auf dem Smartphone (h-11),
+                   darunter auf 36px (sm:h-9) -- Touch-tauglich ohne den Kopfbereich zu sprengen.
+                   Nur in der Standalone sichtbar; im Mehrstufen-Build blendet
+                   refreshRegelwerkPanel() die Karte aus. -->
+              <div id="regelwerkPanel" class="hidden mt-4 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm space-y-2.5">
+
+                  <div>
+                      <div class="flex items-baseline justify-between gap-2 mb-1">
+                          <span class="text-[11px] font-black uppercase tracking-widest text-slate-400">Jahrgang</span>
+                          <span id="jahrgangHint" class="text-[11px] font-semibold text-slate-400 truncate"></span>
+                      </div>
+                      <div class="grid grid-cols-4 gap-1 rounded-xl bg-slate-100 p-1">
+                          <button id="btnKlasse7" onclick="setKlassenstufe('7')"
+                              data-help="Klasse 7: ohne Chemie, PB, Musik und WP II; WAT nur über WP I. Nur neues Recht.">7</button>
+                          <button id="btnKlasse8" onclick="setKlassenstufe('8')"
+                              data-help="Klasse 8: mit Chemie, PB und Musik, ohne Kunst und ohne WP II. Nur neues Recht.">8</button>
+                          <button id="btnKlasse9" onclick="setKlassenstufe('9')"
+                              data-help="Klasse 9: mit Kunst und WP II, ohne Musik">9</button>
+                          <button id="btnKlasse10" onclick="setKlassenstufe('10')"
+                              data-help="Klasse 10: Musik kommt hinzu, die Kunstnote aus Klasse 9 wird übernommen">10</button>
+                      </div>
+                  </div>
+
+                  <div>
+                      <span class="block text-[11px] font-black uppercase tracking-widest text-slate-400 mb-1">Rechtsstand
+                          <span class="wiki-term normal-case tracking-normal font-bold" data-term="sekiv">Sek I-V</span>
+                      </span>
+                      <div class="grid grid-cols-2 gap-1 rounded-xl bg-slate-100 p-1">
+                          <button id="btnRulesetAlt" onclick="setRuleset('alt')"
+                              data-help="Altes Recht: Punkte 0-15 mit Punktzielen und Ausgleich (gilt nach § 59 für Jg. 9/10 noch bis Juli 2028)">alt · Punkte</button>
+                          <button id="btnRulesetNeu" onclick="setRuleset('neu')"
+                              data-help="Neues Recht ab 01.08.2026: Noten 1-6, neue Fächergruppen, kein Ausgleich mehr">2026 · Noten</button>
+                      </div>
+                      <p id="rulesetHint" class="mt-1.5 text-[11px] leading-snug text-slate-500"></p>
+                  </div>
+
+                  <div id="nawiWrap" class="flex items-center justify-between gap-3">
+                      <label for="nawiSelect" class="text-[11px] font-black uppercase tracking-widest text-slate-400">NaWi in FG I</label>
+                      <select id="nawiSelect" onchange="setNawiFgi(this.value)"
+                          data-help="Das eine naturwissenschaftliche Fach, das ab Klasse 9 fachleistungsdifferenziert unterrichtet wird (§ 36 Abs. 1) – die übrigen zählen zur Fächergruppe II"
+                          class="flex-1 max-w-[62%] h-10 px-3 text-sm font-bold rounded-xl border border-slate-200 bg-slate-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none">
+                          <option value="PH">Physik</option>
+                          <option value="CH">Chemie</option>
+                          <option value="BI">Biologie</option>
+                      </select>
+                  </div>
+              </div>
             </div>
 
             <div id="sidebarContent"
@@ -750,7 +1023,7 @@
                                     <span class="w-2 h-2 rounded-full bg-indigo-500"></span>
                                     <span class="wiki-term" data-term="fg1">Fächergruppe I</span> (Differenziert)
                                 </h3>
-                                <span class="text-sm font-bold text-slate-400">DE, MA, EN, CH, PH, <span class="wiki-term" data-term="wp1">WP I</span></span>
+                                <span id="fgiSubjectList" class="text-sm font-bold text-slate-400">DE, MA, EN, CH, PH, <span class="wiki-term" data-term="wp1">WP I</span></span>
                             </div>
                             <div class="overflow-x-auto">
                                 <table class="grade-table w-full text-sm">
@@ -970,7 +1243,7 @@
                                     <th class="px-6 py-4 text-center">FOR</th>
                                     <th class="px-6 py-4 text-center">FOR-Q</th>
                                     <th class="px-6 py-4 text-center">Ø Note</th>
-                                    <th class="px-6 py-4 text-center">Gesamtpunkte</th>
+                                    <th id="classPtsHeader" class="px-6 py-4 text-center">Gesamtpunkte</th>
                                     <th class="px-6 py-4 text-center">Kurswechsel</th>
                                 </tr>
                             </thead>
@@ -1058,6 +1331,25 @@
                 remarks: ""
             }
         ];
+
+        // Ausgangszustand der Beispielschüler (Punkte, altes Recht) – Vorlage für beide Rechtsstände.
+        const EXAMPLE_PUNKTE_JSON = JSON.stringify(students);
+
+        // Beispielschüler passend zum Rechtsstand. Im neuen Recht stehen dieselben Leistungen als
+        // NOTEN im Feld – abgeleitet aus den Punkten oben über die bisherige Notenskala. Dadurch
+        // zeigt ein Wechsel des Rechtsstands denselben Leistungsstand, und die Ergebnisse bleiben
+        // vergleichbar (Max erreicht BBR/EBR, Sarah FOR-Q – in beiden Fassungen).
+        const makeExamples = (rs) => {
+            const liste = JSON.parse(EXAMPLE_PUNKTE_JSON);
+            if (rs !== 'neu') return liste;
+            liste.forEach(s => Object.keys(s.grades).forEach(k => {
+                const g = s.grades[k];
+                if (g.pts === null) return;
+                const n = getNote(g.pts, (k === 'WPI' || k === 'WPII') ? 'N' : g.lvl);
+                if (typeof n === 'number') g.pts = n;
+            }));
+            return liste;
+        };
 
         let activeStudentId = 1;
         let lastFocusedId = null;
@@ -1200,10 +1492,55 @@
         let appStage = null;
         const isKlasse10 = () => appStage === '10' && typeof calculateExamResults === 'function';
 
+        // --- Rechtsstand & Jahrgang (NUR Standalone/Produktiv-Build, appStage === null) ---
+        // Zum 01.08.2026 gilt die neu gefasste Sek I-V (GVBl.II/26 Nr. 35): keine Punkte mehr,
+        // sondern Noten 1-6, neue Faechergruppen (§ 36 Abs. 1) und KEINE Ausgleichsregeln.
+        // Nach § 59 gilt fuer alle, die 2026/27 in Jg. 9/10 und 2027/28 in Jg. 10 sind, weiterhin
+        // AUSSCHLIESSLICH das alte Recht -- beide Regelwerke muessen bis Juli 2028 nebeneinander
+        // laufen. Umgeschaltet wird bewusst von Hand (kein Automatismus nach Schuljahr).
+        //   'alt' = Punkte 0-15, Punktziele, Ausgleich  (Sek I-V 2007, Stand 12.02.2026)
+        //   'neu' = Noten 1-6, §§ 36/37 Sek I-V 2026
+        // Im Mehrstufen-Build (appStage gesetzt) bleibt es IMMER beim alten Verhalten.
+        let ruleset = 'alt';
+        // Jahrgang der Standalone: '7' | '8' | '9' | '10'. Steuert den Faecherkanon (aus den echten
+        // Exportdateien abgeleitet, s. FAECHER_JG in rules-neu.js), die Fachleistungsdifferenzierung
+        // (§ 33 Abs. 2) und Kunst/Musik. In Klasse 7/8 gilt AUSSCHLIESSLICH das neue Recht -- § 59
+        // nennt als Uebergang nur die Jahrgangsstufen 9 und 10.
+        let klassenstufe = '9';
+        const istNoteJahrgang = () => appStage === null && (klassenstufe === '7' || klassenstufe === '8');
+        // Das EINE fachleistungsdifferenzierte naturwissenschaftliche Fach (§ 36 Abs. 1, neues Recht).
+        // Die uebrigen NaWi-Faecher zaehlen dann zur Faechergruppe II.
+        let nawiFgi = 'PH';
+
+        // Jahrgangsstufe aus der importierten Klasse (Excel A1) ableiten: 7->'7' ... 10->'10',
+        // 11->'11', 12/13->'12-13' (Qualifikationsphase gemeinsam). Wird von BEIDEN Builds genutzt:
+        // in der Arbeitskopie fuer die Stufenwahl, in der Standalone fuer den Jahrgangs-Schalter.
+        window.deriveStageFromClass = (className) => {
+            const m = String(className || '').match(/\d{1,2}/);
+            if (!m) return null;
+            const n = parseInt(m[0], 10);
+            if (n === 12 || n === 13) return '12-13';
+            if (n === 11) return '11';
+            if (n === 10) return '10';
+            if (n >= 7 && n <= 9) return String(n);
+            return null;
+        };
+
+        // Waehrend des Imports stellen sich Jahrgang und Rechtsstand automatisch um. Die einzelnen
+        // Schritte sollen dabei NICHT je einen Hinweis erzeugen -- am Ende steht eine einzige,
+        // vollstaendige Rueckmeldung.
+        let stilleUmstellung = false;
+
+        // Rechnet die Standalone im neuen Recht? (Im Mehrstufen-Build nie.)
+        const istRegelwerkNeu = () => appStage === null && ruleset === 'neu';
+        // Klasse 10 im Sinne von Musik/Kunst -- im Mehrstufen-Build ueber die Stufe, in der
+        // Standalone ueber den Jahrgangs-Schalter.
+        const istKlasse10Faecher = () => appStage === '10' || (appStage === null && klassenstufe === '10');
+
         // --- UI-Helfer ---
         // Höchster erreichter Abschluss eines Schülers ('FORQ'|'FOR'|'EBR'|null)
         const studentTopAbschluss = (student) => {
-            const r = calculateResults(student);
+            const r = getResults(student);
             return r.FORQ.isMet ? 'FORQ' : r.FOR.isMet ? 'FOR' : r.EBR.isMet ? 'EBR' : null;
         };
 
@@ -1213,31 +1550,40 @@
             if (!c) { alert(msg); return; }
             const colors = { success: 'bg-emerald-600', error: 'bg-red-600', info: 'bg-slate-800' };
             const el = document.createElement('div');
-            el.className = `text-white text-sm font-semibold px-4 py-3 rounded-xl shadow-lg max-w-xs opacity-0 translate-x-2 transition-all duration-300 ${colors[type] || colors.info}`;
+            // Einblenden von OBEN (passend zur Position), nicht mehr von rechts.
+            el.className = `pointer-events-auto text-white text-sm font-semibold text-center px-4 py-3 rounded-xl shadow-lg w-full opacity-0 -translate-y-2 transition-all duration-300 ${colors[type] || colors.info}`;
             el.textContent = msg;
             c.appendChild(el);
-            requestAnimationFrame(() => el.classList.remove('opacity-0', 'translate-x-2'));
+            requestAnimationFrame(() => el.classList.remove('opacity-0', '-translate-y-2'));
             const dwell = type === 'error' ? 6500 : 3500;
-            setTimeout(() => { el.classList.add('opacity-0', 'translate-x-2'); setTimeout(() => el.remove(), 300); }, dwell);
+            setTimeout(() => { el.classList.add('opacity-0', '-translate-y-2'); setTimeout(() => el.remove(), 300); }, dwell);
         };
 
         // --- Regelwerk-Wiki: Begriffs-Lexikon, Overlay, Tooltips, Suche ---
         // section = Sprungziel im Overlay (Sektions-id oder Glossar-Anker "g-<key>").
         const WIKI_TERMS = {
-            'fg1': { label: 'Fächergruppe I (FG I)', short: 'Differenzierte Kursfächer: DE, MA, EN, CH, PH, WP I – auf E- oder G-Niveau.', section: 'g-fg1' },
-            'fg2': { label: 'Fächergruppe II (FG II)', short: 'Nicht kursdifferenzierte Fächer: BIO, WAT, GEWI, LER, KU, SP, WP II.', section: 'g-fg2' },
-            'e-kurs': { label: 'E-Kurs (Erweiterungskurs)', short: 'Höheres Anforderungsniveau in FG I. Gleiche Punkte ergeben eine bessere Note als im G-Kurs.', section: 'g-e-kurs' },
-            'g-kurs': { label: 'G-Kurs (Grundkurs)', short: 'Grundlegendes Anforderungsniveau in FG I.', section: 'g-g-kurs' },
-            'kernfach': { label: 'Kernfach', short: 'Deutsch, Mathematik und Englisch.', section: 'g-kernfach' },
-            'wp1': { label: 'WP I (Wahlpflicht I)', short: 'Wahlpflichtfach in Fächergruppe I.', section: 'g-wp1' },
-            'wp2': { label: 'WP II (Wahlpflicht II)', short: 'Wahlpflichtfach in Fächergruppe II.', section: 'g-wp2' },
-            'punkte': { label: 'Punkte & Noten', short: 'Leistungen zählen als Punkte 0–15; daraus folgt die Note 1–6 (abhängig vom Niveau).', section: 'wiki-punkte' },
-            'ausfall': { label: 'Ausfall', short: 'Eine nicht erfüllte Mindestbedingung in einem Fach. Je Abschluss ist nur eine begrenzte Zahl erlaubt.', section: 'g-ausfall' },
-            'ausgleich': { label: 'Ausgleich', short: 'Schwache Leistungen können in Grenzen durch andere ausgeglichen werden – daher „max. X Ausfälle".', section: 'g-ausgleich' },
-            'bbr': { label: 'BBR', short: 'Berufsbildungsreife (einfacher Schulabschluss).', section: 'wiki-bbr' },
+            'fg1': { label: 'Fächergruppe I (FG I)', short: '<b>Neues Recht (§ 36 Abs. 1):</b> Deutsch, Mathematik, erste Fremdsprache, <b>ein</b> naturwissenschaftliches Fach und WP I – fünf Fächer. <b>Altes Recht:</b> DE, MA, EN, CH, PH, WP I – sechs Fächer.', section: 'g-fg1' },
+            'fg2': { label: 'Fächergruppe II (FG II)', short: 'Alle übrigen Fächer – im neuen Recht also auch die Naturwissenschaften, die nicht fachleistungsdifferenziert unterrichtet werden. Welche Fächer dazugehören, hängt vom Jahrgang ab.', section: 'g-fg2' },
+            'e-kurs': { label: 'E-Kurs (Erweiterungskurs)', short: 'Höheres Anforderungsniveau. Altes Recht: gleiche Punkte ergeben eine bessere Note als im G-Kurs. Neues Recht: für FOR genügt im E-Kurs „ausreichend", im G-Kurs muss es „befriedigend" sein.', section: 'g-e-kurs' },
+            'g-kurs': { label: 'G-Kurs (Grundkurs)', short: 'Grundlegendes Anforderungsniveau. Im neuen Recht sind in den Grundkursen für FOR und FOR-Q mindestens <b>befriedigende</b> Leistungen verlangt.', section: 'g-g-kurs' },
+            'kernfach': { label: 'Kernfach', short: 'Deutsch, Mathematik und Englisch (erste Fremdsprache). Für FOR muss mindestens ein E-Kurs in Deutsch oder Mathematik liegen, für FOR-Q mindestens zwei E-Kurse in diesen drei Fächern.', section: 'g-kernfach' },
+            'wp1': { label: 'WP I (Wahlpflicht I)', short: 'Wahlpflichtfach ab Jahrgangsstufe 7, gehört zur Fächergruppe I. Wird nicht in Kursen differenziert.', section: 'g-wp1' },
+            'wp2': { label: 'WP II (Wahlpflicht II)', short: 'Wahlpflichtfach ab Jahrgangsstufe 9, gehört zur Fächergruppe II. In den Jahrgangsstufen 7 und 8 gibt es das Fach noch nicht.', section: 'g-wp2' },
+            'punkte': { label: 'Punkte & Noten', short: 'Punkte 0–15 gibt es <b>nur im alten Recht</b>. Seit dem 01.08.2026 wird ausschließlich mit Noten 1–6 bewertet; für Jg. 9/10 gilt die Punkteskala übergangsweise weiter (§ 59).', section: 'wiki-punkte' },
+            'ausfall': { label: 'Ausfall', short: 'Eine nicht erfüllte Mindestbedingung in einem Fach. Begriff des <b>alten</b> Rechts: dort waren je Abschluss bis zu zwei Ausfälle zulässig. Im neuen Recht gibt es das nicht mehr.', section: 'g-ausfall' },
+            'ausgleich': { label: 'Ausgleich', short: '<b>Im neuen Recht gestrichen.</b> Früher konnten schwache Leistungen durch gute in anderen Fächern ausgeglichen werden; seit dem 01.08.2026 muss jede Bedingung für sich erfüllt sein.', section: 'g-ausgleich' },
+            'versetzung': { label: 'Versetzung', short: 'Aufrücken in die nächste Jahrgangsstufe (§ 36). In Jg. 7/8 die eigentliche Entscheidung – ein Abschluss wird erst am Ende der Jahrgangsstufe 10 vergeben.', section: 'wiki-versetzung' },
+            'differenzierung': { label: 'Fachleistungsdifferenzierung', short: 'Unterricht in G- und E-Kursen (§ 33 Abs. 2): Deutsch und Mathematik ab Jahrgangsstufe 7, erste Fremdsprache ab 8, ein naturwissenschaftliches Fach ab 9.', section: 'g-differenzierung' },
+            'gewi': { label: 'GEWI (Gesellschaftswissenschaften)', short: 'Lernbereich aus Erdkunde (Geografie), Geschichte und Politischer Bildung (§ 12 Abs. 2); der Rechner mittelt daraus eine Note. In Jahrgangsstufe 7 nur aus EK und GE – PB gibt es dort noch nicht.', section: 'g-gewi' },
+            'nachteilsausgleich': { label: 'Nachteilsausgleich', short: 'Angemessene Erleichterungen bei nachgewiesener Beeinträchtigung (§ 13 Abs. 5), z. B. verlängerte Arbeitszeit oder Hilfsmittel. Die fachlichen Anforderungen bleiben unberührt; es entscheidet die Klassenkonferenz.', section: 'g-nachteilsausgleich' },
+            'nachpruefung': { label: 'Nachprüfung', short: 'Prüfung in <b>einem</b> Fach, wenn dessen Verbesserung um eine Notenstufe genügt (§ 16 Abs. 3): nach den Jahrgangsstufen 7 bis 9, um nachträglich versetzt zu werden (Abs. 1) – und am Ende der Jahrgangsstufe 10 im Bildungsgang zur allgemeinen Hochschulreife (Abs. 2). Der Rechner berechnet sie nicht.', section: 'g-nachpruefung' },
+            'sprachpruefung': { label: 'Sprachfeststellungsprüfung', short: 'Neu in § 58 Abs. 1: Wer nach dem ersten Halbjahr der Jahrgangsstufe 7 aufgenommen wird und die zweite Fremdsprache nicht mehr erlernen kann, kann sie stattdessen in einer Prüfung nachweisen.', section: 'g-sprachpruefung' },
+            'asv': { label: 'Arbeits- und Sozialverhalten (ASV)', short: 'Bewertung in acht Kategorien (§ 14), verbindlich am Ende der Jahrgangsstufe 9, in Jahrgangsstufe 10 auf Elternwunsch getrennt vom Zeugnis. Fließt nicht in die Abschlussberechnung ein.', section: 'g-asv' },
+            'bbr': { label: 'BBR', short: 'Berufsbildungsreife (einfacher Schulabschluss). Wird mit der Versetzung in die Jahrgangsstufe 10 erworben (§ 37 Abs. 2).', section: 'wiki-bbr' },
             'ebr': { label: 'EBR / BBR', short: '(Erweiterte) Berufsbildungsreife – Voraussetzungen siehe Abschnitt BBR/EBR.', section: 'wiki-bbr' },
             'for': { label: 'FOR', short: 'Fachoberschulreife (mittlerer Schulabschluss).', section: 'wiki-for' },
-            'forq': { label: 'FOR-Q', short: 'FOR mit Berechtigung zum Besuch der gymnasialen Oberstufe.', section: 'wiki-forq' }
+            'forq': { label: 'FOR-Q', short: 'FOR mit Berechtigung zum Besuch der gymnasialen Oberstufe.', section: 'wiki-forq' },
+            'sekiv': { label: 'Sek I-V', short: 'Sekundarstufe I-Verordnung. Seit 01.08.2026 in neuer Fassung (Noten statt Punkte); für Jg. 9/10 gilt nach § 59 übergangsweise noch das alte Recht.', section: 'wiki-sekiv' }
         };
 
         // Glossar aus WIKI_TERMS erzeugen (Anker g-<key> = Sprungziele der Tooltip-Klicks)
@@ -1276,7 +1622,9 @@
         // Suche im Wiki: filtert WIKI_TERMS (label/short) + Sektions-Überschriften
         const WIKI_SECTIONS = [
             { id: 'wiki-grundlagen', title: 'Grundlagen' },
-            { id: 'wiki-punkte', title: 'Punkte & Noten' },
+            { id: 'wiki-sekiv', title: 'Sek I-V 2026 – zwei Rechtsstände' },
+            { id: 'wiki-versetzung', title: 'Versetzung (§ 36)' },
+            { id: 'wiki-punkte', title: 'Punkte & Noten (altes Recht)' },
             { id: 'wiki-bbr', title: 'BBR/EBR – (Erweiterte) Berufsbildungsreife' },
             { id: 'wiki-for', title: 'FOR – Fachoberschulreife' },
             { id: 'wiki-forq', title: 'FOR-Q – Oberstufenberechtigung' },
@@ -1438,13 +1786,17 @@
             return label;
         };
 
-        // Kurswechsel-Empfehlung für differenzierte Fächer (nur G-/E-Kurs):
+        // Kurswechsel-Empfehlung für differenzierte Fächer (nur G-/E-Kurs), § 34 Abs. 3:
         //   G-Kurs + Note 1/2 -> Hochstufung E ; E-Kurs + Note 5/6 -> Herabstufung G ;
         //   Note 3/4 -> Entscheidung der Lehrkraft ; sonst keine Empfehlung.
+        // Die Schwellen sind in beiden Rechtsständen dieselben; nur die HERKUNFT der Note
+        // unterscheidet sich: altes Recht rechnet sie aus den Punkten, neues Recht bekommt
+        // sie direkt eingegeben. Das erledigt noteAnzeige() (rules-neu.js) -- ohne dieses
+        // Modul (Alt-Build) bleibt es unveraendert bei getNote().
         const courseChangeHint = (lvl, pts) => {
             if (lvl !== 'G' && lvl !== 'E') return null;            // nur G/E differenziert
-            const note = getNote(pts, lvl);
-            if (note === 'O.B.') return null;                       // ohne Punkte keine Empfehlung
+            const note = (typeof noteAnzeige === 'function') ? noteAnzeige(pts, lvl) : getNote(pts, lvl);
+            if (note === 'O.B.') return null;                       // ohne Bewertung keine Empfehlung
             if (lvl === 'G' && (note === 1 || note === 2)) return { arrow: '↑', color: 'text-emerald-600' }; // Hochstufung G->E
             if (lvl === 'E' && (note === 5 || note === 6)) return { arrow: '↓', color: 'text-red-600' };     // Herabstufung E->G
             return null;                                            // Note 3/4 und sonstige: kein Badge
@@ -1484,8 +1836,11 @@
             // Ohne aktive Stufe (Produktiv-Build, appStage=null) UND in Klasse 9 bleibt FG II unveraendert
             // bei 7 Faechern mit KU – die dynamischen Zielsummen passen sich automatisch an (mit Musik in
             // Klasse 10: FOR-Q 120/64 statt 112/56, exakt nach Land-Brandenburg-Vorgabe).
+            // istKlasse10Faecher(): im Mehrstufen-Build die Stufe '10' (unveraendert), in der
+            // Standalone zusaetzlich der Jahrgangs-Schalter -- damit auch dort Musik mitzaehlt und
+            // die Kunstnote aus Klasse 9 stehen bleibt.
             const fgiiSumKeys =
-                appStage === '10' ? ['BI', 'WAT', 'MU', 'LE', 'KU', 'SP', 'WPII'] :
+                istKlasse10Faecher() ? ['BI', 'WAT', 'MU', 'LE', 'KU', 'SP', 'WPII'] :
                 ['BI', 'WAT', 'LE', 'KU', 'SP', 'WPII'];
             const fgiiRes = fgiiSumKeys.map(k => ({
                 key: k,
@@ -1673,6 +2028,282 @@
             };
         }
 
+        // ============================================================================
+        //  REGELWERK „NEU" – Sekundarstufe I-Verordnung vom 6. August 2026
+        //  (GVBl.II/26 Nr. 35), Abschnitt 3 = Gesamtschule.
+        // ----------------------------------------------------------------------------
+        //  Wörtliche Belegstelle: Doku/Quellen/Sek-I-V-2026-Auszug.md (Abruf bei BRAVORS).
+        //  JEDE Bedingung hier muss sich dort wiederfinden – nicht nach der Synopse des
+        //  MBJS-Infoschreibens arbeiten, die ist zusammengefasst und nennt z. B. die neue
+        //  Fächergruppen-Einteilung nicht.
+        //
+        //  Was sich gegenüber src/core/calc.js (altes Recht) ändert:
+        //    * Bewertung in NOTEN 1–6 statt Punkten 0–15 (Anlage 2 der alten VO entfällt).
+        //    * KEINE Punktziele (60/84/112, FG II 30/42/56, Kl. 10 120/64).
+        //    * KEINE Ausgleichsregeln / kein „max. 2 Ausfälle" – ersatzlos gestrichen.
+        //    * Fächergruppe I neu (§ 36 Abs. 1): Deutsch, Mathematik, erste Fremdsprache,
+        //      EIN fachleistungsdifferenziertes naturwissenschaftliches Fach und das
+        //      WP-I-Fach. Das übrige NaWi-Fach zählt zur Fächergruppe II.
+        //
+        //  ACHTUNG, häufigste Fehlerquelle: Die E-/G-Umrechnung („mangelhaft im E-Kurs
+        //  entspricht ausreichend im G-Kurs") steht in § 36 Absatz 2 und gilt dort
+        //  ausdrücklich NUR für die Versetzung in die Jahrgangsstufe 8 oder 9. Für die
+        //  Versetzung in Jahrgangsstufe 10 (§ 36 Abs. 3) und für die Abschlüsse (§ 37)
+        //  gibt es KEINE Umrechnung – dort wirkt das Kursniveau über unterschiedliche
+        //  Schwellen (E-Kurs: ausreichend, G-Kurs: befriedigend). Dieses Modul deckt
+        //  Jahrgang 9/10 ab, hier wird also NIE umgerechnet.
+        //
+        //  Nach § 59 gilt für alle, die sich 2026/27 in Jg. 9/10 bzw. 2027/28 in Jg. 10
+        //  befinden, ausschließlich das ALTE Recht. Deshalb der Schalter statt eines
+        //  Austauschs: calc.js bleibt unverändert die geprüfte Umsetzung des alten Rechts.
+        // ============================================================================
+
+        // Eingabewerte dürfen (wie im Notenspiegel der Klassen 7/8) eine Nachkommastelle
+        // haben; für jede Bedingung zählt die daraus gebildete ganze Zeugnisnote.
+        const zeugnisnote = (v) => {
+            if (v === null || v === undefined || v === '' || isNaN(v)) return null;
+            return Math.min(6, Math.max(1, Math.round(Number(v))));
+        };
+
+        // Anzeige-Note: im neuen Recht die Zeugnisnote, sonst die Punkt-Umrechnung aus calc.js.
+        const noteAnzeige = (pts, lvl) => {
+            if (!istRegelwerkNeu()) return getNote(pts, lvl);
+            const n = zeugnisnote(pts);
+            return n === null ? 'O.B.' : n;
+        };
+
+        const NAWI_FAECHER = ['CH', 'PH', 'BI'];
+
+        // --- Fächerkanon je Jahrgangsstufe ------------------------------------------------
+        // Abgeleitet aus den ECHTEN Exportdateien (Quellen/Klassen 7-13/, Stand Juni 2026).
+        // Die Unterschiede sind keine Vermutung, sondern stehen so in den Dateien:
+        //   Klasse 7  : kein CH, kein PB, kein MU, kein WP II; WAT-Spalte LEER (WAT nur über WP I)
+        //   Klasse 8  : kein KU, kein WP II
+        //   Klasse 9  : kein MU
+        //   Klasse 10 : mit MU; die KU-Spalte ist vorhanden, aber leer -> Note aus Klasse 9
+        // Reihenfolge = Anzeige-Reihenfolge. EK/GE/PB stecken in GEWI und stehen deshalb nicht hier.
+        const FAECHER_JG = {
+            '7':  { fgi: ['DE', 'MA', 'EN', 'WPI'], fgii: ['BI', 'PH', 'LE', 'KU', 'SP'],                       gewi: ['EK', 'GE'] },
+            '8':  { fgi: ['DE', 'MA', 'EN', 'WPI'], fgii: ['BI', 'CH', 'PH', 'WAT', 'LE', 'MU', 'SP'],          gewi: ['EK', 'GE', 'PB'] },
+            '9':  { fgi: ['DE', 'MA', 'EN', 'WPI'], fgii: ['WAT', 'LE', 'KU', 'SP', 'WPII'],                    gewi: ['EK', 'GE', 'PB'] },
+            '10': { fgi: ['DE', 'MA', 'EN', 'WPI'], fgii: ['WAT', 'MU', 'LE', 'KU', 'SP', 'WPII'],              gewi: ['EK', 'GE', 'PB'] }
+        };
+
+        // Fachleistungsdifferenzierung nach § 33 Abs. 2 (NEUE Fassung):
+        //   Deutsch und Mathematik spätestens ab dem 2. Halbjahr der Jahrgangsstufe 7,
+        //   die erste Fremdsprache ab Jahrgangsstufe 8,
+        //   EIN naturwissenschaftliches Fach ab Jahrgangsstufe 9 (welches, ist Schulentscheidung).
+        // Die Exportdateien vom Juni 2026 zeigen noch die ALTE Folge (MA + Fremdsprache ab Jg. 7);
+        // importierte Kursangaben anderer Fächer bleiben gespeichert, werden hier aber nicht gewertet.
+        const jgKey = () => (FAECHER_JG[klassenstufe] ? klassenstufe : '9');
+        const diffKeysNeu = () => {
+            const jg = jgKey();
+            if (jg === '7') return ['DE', 'MA'];
+            if (jg === '8') return ['DE', 'MA', 'EN'];
+            return ['DE', 'MA', 'EN', nawiFgi];
+        };
+        // Ab welcher Stufe ist die Kursdifferenzierung vollständig? Vorher lassen sich die
+        // Kursbedingungen der Abschlüsse (§ 37) noch gar nicht entscheiden.
+        const kurseVollstaendig = () => jgKey() === '9' || jgKey() === '10';
+
+        // Fächergruppe I (§ 36 Abs. 1): DE, MA, erste Fremdsprache, das differenzierte NaWi
+        // (erst ab Klasse 9 vorhanden) und das WP-I-Fach.
+        const fgiKeysNeu = () => {
+            const jg = jgKey();
+            const basis = FAECHER_JG[jg].fgi;
+            if (jg === '7' || jg === '8') return basis;                       // noch kein NaWi in FG I
+            return ['DE', 'MA', 'EN', nawiFgi, 'WPI'];
+        };
+        // Fächergruppe II = „die übrigen Fächer" des Jahrgangs. Ab Klasse 9 gehören die NICHT
+        // differenzierten Naturwissenschaften dazu.
+        const fgiiKeysNeu = () => {
+            const jg = jgKey();
+            const kanon = FAECHER_JG[jg].fgii;
+            if (jg === '7' || jg === '8') return kanon;
+            return [...NAWI_FAECHER.filter(k => k !== nawiFgi), ...kanon];
+        };
+        // Die Fächer hinter GEWI (in Klasse 7 ohne PB – das Fach gibt es dort nicht).
+        const gewiKeysNeu = () => FAECHER_JG[jgKey()].gewi;
+
+        function calculateResultsNeu(student) {
+            const g = student.grades;
+            const eintrag = (k, lvl) => {
+                const d = g[k] || { pts: null, lvl: 'N' };
+                return { key: k, pts: d.pts, lvl, fach: d.fach, note: zeugnisnote(d.pts) };
+            };
+
+            const diff = diffKeysNeu();
+            const fgiRes = fgiKeysNeu().map(k => eintrag(k, k === 'WPI' ? 'N' : ((g[k] && g[k].lvl) || 'G')));
+            const fgiiRes = fgiiKeysNeu().map(k => eintrag(k, 'N'));
+
+            // GEWI wie im alten Regelwerk als EIN Fach der Fächergruppe II (Lernbereich
+            // Gesellschaftswissenschaften, § 12 Abs. 2) – Durchschnitt der bewerteten Noten.
+            const gewiNoten = gewiKeysNeu().map(k => zeugnisnote(g[k] ? g[k].pts : null)).filter(n => n !== null);
+            const gewiNote = gewiNoten.length ? Math.round(gewiNoten.reduce((a, b) => a + b, 0) / gewiNoten.length) : null;
+            fgiiRes.push({ key: 'GEWI (Ø)', pts: gewiNote, lvl: 'N', note: gewiNote, isCalculated: true });
+            gewiKeysNeu().forEach(k => {
+                const e = eintrag(k, 'N');
+                e.isComponent = true;
+                fgiiRes.push(e);
+            });
+
+            const fgiiHaupt = fgiiRes.filter(r => !r.isComponent);
+            const alleFaecher = [...fgiRes, ...fgiiHaupt];
+
+            // --- Hilfen ---------------------------------------------------------------
+            // „mindestens ausreichend" = Note 4 oder besser, „mindestens befriedigend" = Note 3
+            // oder besser. Nicht bewertete Fächer (o. B.) können eine Bedingung weder erfüllen
+            // noch verletzen – sie werden nicht gezählt, machen die Bedingung aber unsicher ('?').
+            const bewertet = (list) => list.filter(r => r.note !== null);
+            const offen = (list) => list.some(r => r.note === null);
+            const schlechterAls = (list, grenze) => bewertet(list).filter(r => r.note > grenze);
+            // Ergebniszeile für die Statusmatrix: 'ok' | 'warning' | 'unknown' (wie calc.js)
+            const zeile = (label, list, grenze, extra) => {
+                const verstoss = schlechterAls(list, grenze);
+                const ok = verstoss.length === 0;
+                const status = ok ? (offen(list) ? 'unknown' : 'ok') : 'warning';
+                return Object.assign({
+                    label: label + (verstoss.length ? ` (${verstoss.length}× nicht erfüllt)` : ''),
+                    ok, status
+                }, extra || {});
+            };
+
+            const eKurse = fgiRes.filter(r => diff.includes(r.key) && r.lvl === 'E');
+            const gKurse = fgiRes.filter(r => diff.includes(r.key) && r.lvl === 'G');
+            const uebrige = [...fgiRes.filter(r => !diff.includes(r.key)), ...fgiiHaupt];   // WP I + FG II
+            const eKernFaecher = eKurse.filter(r => ['DE', 'MA', 'EN'].includes(r.key));
+
+            // --- BBR/EBR: § 36 Abs. 3, über § 37 Abs. 2 auch Maßstab für den Abschluss ---
+            const fgiiNote5 = bewertet(fgiiHaupt).filter(r => r.note === 5).length;
+            const fgiiNote6 = bewertet(fgiiHaupt).filter(r => r.note === 6).length;
+            const ebrFgiOk = schlechterAls(fgiRes, 4).length === 0;
+            const ebrDetails = [
+                zeile('FG I: alle mindestens ausreichend (Note 4)', fgiRes, 4),
+                { label: `FG II: höchstens 2× mangelhaft (${fgiiNote5} vorhanden)`, ok: fgiiNote5 <= 2, status: fgiiNote5 <= 2 ? 'ok' : 'warning' },
+                { label: `FG II: keine ungenügende Leistung (${fgiiNote6} vorhanden)`, ok: fgiiNote6 === 0, status: fgiiNote6 === 0 ? 'ok' : 'warning' }
+            ];
+            const ebrMet = ebrFgiOk && fgiiNote5 <= 2 && fgiiNote6 === 0;
+
+            // --- FOR (Realschulabschluss/Fachoberschulreife): § 37 Abs. 3 ---------------
+            // In Klasse 7/8 sind erst DE/MA bzw. DE/MA/EN differenziert (§ 33 Abs. 2) -- die
+            // Kursbedingungen der Abschlüsse lassen sich dort noch gar nicht entscheiden. Statt sie
+            // fälschlich als „nicht erfüllt" zu zeigen, bekommen sie den Status '?' (wie bei o.B.).
+            const kursOffen = !kurseVollstaendig();
+            const kursZusatz = kursOffen ? ' – ab Jahrgangsstufe 9 entscheidbar' : '';
+            const kursStatus = (ok) => kursOffen ? 'unknown' : (ok ? 'ok' : 'warning');
+
+            const forEKernOk = eKurse.some(r => r.key === 'DE' || r.key === 'MA');
+            const forKursOk = eKurse.length >= 2 && forEKernOk;
+            const forDetails = [
+                { label: `Mind. 2 E-Kurse, davon DE oder MA (${eKurse.length} E-Kurs${eKurse.length === 1 ? '' : 'e'})${kursZusatz}`, ok: forKursOk, status: kursStatus(forKursOk) },
+                zeile('E-Kurse: mindestens ausreichend (Note 4)', eKurse, 4),
+                zeile('G-Kurse: mindestens befriedigend (Note 3)', gKurse, 3),
+                zeile('Übrige Fächer: mindestens ausreichend (Note 4)', uebrige, 4)
+            ];
+            const forMet = forKursOk && forDetails.slice(1).every(d => d.ok);
+
+            // --- FOR-Q (Berechtigung gymnasiale Oberstufe): § 37 Abs. 4 -----------------
+            const forqKursOk = eKurse.length >= 3 && eKernFaecher.length >= 2;
+            const eBefriedigend = bewertet(eKurse).filter(r => r.note <= 3).length;
+            const eZweiBefriedigend = eBefriedigend >= 2;
+            const forqEAusreichend = zeile('E-Kurse: alle mindestens ausreichend (Note 4)', eKurse, 4);
+            const forqDetails = [
+                { label: `Mind. 3 E-Kurse, darunter 2× DE/EN/MA (${eKurse.length} E-Kurse, davon ${eKernFaecher.length} Kernfächer)${kursZusatz}`, ok: forqKursOk, status: kursStatus(forqKursOk) },
+                { label: `E-Kurse: mind. 2× befriedigend (${eBefriedigend} vorhanden)${kursZusatz}`, ok: eZweiBefriedigend, status: kursOffen ? 'unknown' : (eZweiBefriedigend ? 'ok' : (offen(eKurse) ? 'unknown' : 'warning')) },
+                forqEAusreichend,
+                zeile('G-Kurse: mindestens befriedigend (Note 3)', gKurse, 3),
+                zeile('Übrige Fächer: mindestens ausreichend (Note 4)', uebrige, 4)
+            ];
+            const forqMet = forqKursOk && eZweiBefriedigend && forqDetails.slice(2).every(d => d.ok);
+
+            // --- Versetzung in die Jahrgangsstufe 8 oder 9: § 36 Abs. 2 ------------------
+            // ACHTUNG: Das ist die EINZIGE Stelle im Programm, an der die E-/G-Umrechnung gilt --
+            // § 36 Abs. 2 Satz 2: „Eine mangelhafte Leistung in einem Erweiterungskurs entspricht
+            // einer ausreichenden Leistung in einem Grundkurs, eine ungenügende Leistung in einem
+            // Erweiterungskurs entspricht einer mangelhaften Leistung in einem Grundkurs."
+            // Für die Versetzung in Jg. 10 (§ 36 Abs. 3) und für die Abschlüsse (§ 37) gilt sie
+            // ausdrücklich NICHT -- s. den Warnhinweis im Kopf dieser Datei.
+            const angerechnet = (r) => {
+                if (r.note === null) return null;
+                if (r.lvl !== 'E') return r.note;
+                if (r.note === 5) return 4;          // mangelhaft im E-Kurs  = ausreichend im G-Kurs
+                if (r.note === 6) return 5;          // ungenügend im E-Kurs  = mangelhaft im G-Kurs
+                return r.note;
+            };
+            const vsWerte = alleFaecher.map(r => ({ key: r.key, note: angerechnet(r) })).filter(r => r.note !== null);
+            const vsMangelhaft = vsWerte.filter(r => r.note === 5).length;
+            const vsSchlechter = vsWerte.filter(r => r.note > 5).length;          // ungenügend
+            const vsAlleAusreichend = vsMangelhaft === 0 && vsSchlechter === 0;
+            const vsKernOk = ['DE', 'MA'].every(k => {
+                const r = fgiRes.find(x => x.key === k);
+                const n = r ? angerechnet(r) : null;
+                return n === null || n <= 4;
+            });
+            const vsBedingungOk = (vsAlleAusreichend || (vsMangelhaft <= 2 && vsSchlechter === 0)) && vsKernOk;
+            const versetzungDetails = [
+                { label: `In jedem Fach mindestens ausreichend (${vsMangelhaft + vsSchlechter} Ausnahme${vsMangelhaft + vsSchlechter === 1 ? '' : 'n'})`,
+                  ok: vsAlleAusreichend, status: vsAlleAusreichend ? 'ok' : 'warning' },
+                { label: `… oder höchstens zwei mangelhafte Leistungen (${vsMangelhaft} vorhanden)`,
+                  ok: vsMangelhaft <= 2 && vsSchlechter === 0, status: (vsMangelhaft <= 2 && vsSchlechter === 0) ? 'ok' : 'warning' },
+                { label: `Keine ungenügende Leistung (${vsSchlechter} vorhanden)`,
+                  ok: vsSchlechter === 0, status: vsSchlechter === 0 ? 'ok' : 'warning' },
+                { label: 'Deutsch und Mathematik mindestens ausreichend', ok: vsKernOk, status: vsKernOk ? 'ok' : 'warning' },
+                { label: 'E-Kurs-Anrechnung nach § 36 Abs. 2 berücksichtigt', ok: true, status: 'ok' }
+            ];
+
+            // --- Kennzahlen für Anzeige/Sortierung --------------------------------------
+            const alleNoten = bewertet(alleFaecher).map(r => r.note);
+            const avgNote = alleNoten.length ? alleNoten.reduce((a, b) => a + b, 0) / alleNoten.length : null;
+            const unter4 = schlechterAls(alleFaecher, 4).length;
+
+            return {
+                // Versetzung in die naechste Jahrgangsstufe (§ 36 Abs. 2) -- fuer Klasse 7/8 die
+                // eigentlich zutreffende Entscheidung; in Klasse 9/10 zeigt die Oberflaeche sie
+                // nicht, dort ist § 36 Abs. 3 (= BBR/EBR) massgeblich.
+                VERSETZUNG: { isMet: vsBedingungOk, details: versetzungDetails },
+                EBR: { isMet: ebrMet, details: ebrDetails },
+                FOR: { isMet: forMet, details: forDetails },
+                FORQ: { isMet: forqMet, details: forqDetails },
+                stats: {
+                    mode: 'neu',
+                    fgiRes, fgiiRes,
+                    avgNote,
+                    unter4,
+                    eKurse: eKurse.length,
+                    jahrgang: jgKey(),
+                    kursOffen,
+                    // Sortierwert „höher ist besser" – im alten Recht die Punktsumme, hier die
+                    // umgedrehte Durchschnittsnote, damit Sortierungen in beiden Regelwerken passen.
+                    sortScore: avgNote === null ? -99 : (6 - avgNote),
+                    targets: null,
+                    sumTotal: null,
+                    sumFG2: null
+                },
+                adjustment: { isAdjusted: false, message: null }
+            };
+        }
+
+        // Rechtsstand + Jahrgang für jeden Ausdruck: Ein Bericht darf nie offenlassen, nach
+        // welcher Verordnung gerechnet wurde – die beiden gelten bis Juli 2028 nebeneinander.
+        // Im Mehrstufen-Build (appStage gesetzt) bleibt die Zeile leer, dort steuert die Stufe.
+        const regelwerkDruckzeile = () => {
+            if (appStage !== null) return '';
+            return `Klasse ${klassenstufe} · Rechtsstand: ` + (ruleset === 'neu'
+                ? 'Sek I-V vom 6. August 2026 (Noten 1–6)'
+                : 'Sek I-V vom 2. August 2007 (Punkte 0–15, Übergang nach § 59)');
+        };
+
+        // --- Dispatcher: EIN Einstiegspunkt für die gesamte Oberfläche -----------------
+        // calc.js (altes Recht) bleibt dadurch vollständig unangetastet.
+        const getResults = (student) => {
+            if (istRegelwerkNeu()) return calculateResultsNeu(student);
+            // Altes Recht: Ergebnis von calc.js unveraendert, nur um die beiden Felder ergaenzt,
+            // ueber die die Oberflaeche beide Regelwerke gleich behandeln kann.
+            const r = calculateResults(student);
+            r.stats.mode = 'alt';
+            r.stats.sortScore = r.stats.sumTotal;
+            return r;
+        };
         // --- UI Rendering ---
         // Badge-Stile je Abschluss (für Schülerliste)
         const ABSCHLUSS_BADGE = {
@@ -1690,12 +2321,13 @@
         };
 
         function renderSidebar() {
+            if (typeof refreshRegelwerkPanel === 'function') refreshRegelwerkPanel();
             const list = document.getElementById('studentList');
 
             // Anzeigeliste: filtern (Suche) + sortieren – ohne students selbst zu verändern
             let display = students.filter(s => s.name.toLowerCase().includes(studentSearch));
             if (studentSort === 'points' && !notenspiegelActive()) {
-                display = [...display].sort((a, b) => calculateResults(b).stats.sumTotal - calculateResults(a).stats.sumTotal);
+                display = [...display].sort((a, b) => getResults(b).stats.sortScore - getResults(a).stats.sortScore);
             } else if (studentSort === 'abschluss' && !notenspiegelActive()) {
                 const rank = { FORQ: 3, FOR: 2, EBR: 1 };
                 display = [...display].sort((a, b) => (rank[studentTopAbschluss(b)] || 0) - (rank[studentTopAbschluss(a)] || 0));
@@ -1776,11 +2408,20 @@
             fitNameInput();
         }
 
+        // Wird dieses Fach im aktuellen Jahrgang in G-/E-Kursen unterrichtet? Im alten Recht wie
+        // bisher alle FG-I-Fächer außer WP I; im neuen Recht nach § 33 Abs. 2 (DE/MA ab Kl. 7,
+        // erste Fremdsprache ab Kl. 8, ein NaWi ab Kl. 9).
+        const istDifferenziert = (key) => {
+            if (key === 'WPI') return false;
+            if (typeof istRegelwerkNeu === 'function' && istRegelwerkNeu()) return diffKeysNeu().indexOf(key) !== -1;
+            return true;
+        };
+
         function renderDashboard() {
             const student = students.find(s => s.id === activeStudentId);
             // Prüfungsrechner + Musik nur in der Stufe „Klasse 10" (isKlasse10 prüft Stufe UND Build).
             const examOn = isKlasse10();
-            const baseRes = calculateResults(student);                 // reine Jahresnoten – für die Noten-Tabellen
+            const baseRes = getResults(student);                       // reine Jahresnoten – für die Noten-Tabellen
             const examCalc = examOn ? calculateExamResults(student) : null;
             const res = examCalc ? examCalc.fullRes : baseRes;         // Prognose (Scorecards/Status/Header) inkl. Prüfung
             const topAbschluss = examCalc
@@ -1902,6 +2543,21 @@
             const buildRow = (key, data, isFGI) => {
                 // Prüfungs-Konfiguration dieser Zeile (nur DE/MA/EN/WPI haben Pflichtprüfungen)
                 const cfg = (examOn && isFGI) ? examRowConfig(key, student.exam) : null;
+                // Kunst wird in Klasse 10 nicht mehr unterrichtet: die Note aus Klasse 9 steht
+                // unverändert auf dem Zeugnis und ist deshalb hier schreibgeschützt.
+                // Kunst wird in Klasse 10 nicht mehr unterrichtet; die Note stammt aus Klasse 9.
+                // Der Export liefert die Spalte leer -> solange nichts eingetragen ist, MUSS das Feld
+                // befüllbar bleiben. Ist eine Note da, wird sie gesperrt (bewusst entsperrbar).
+                const kunstUebernahme = key === 'KU' && istKlasse10Faecher();
+                const kunstGesperrt = kunstUebernahme && data.pts !== null && !kunstEntsperrt;
+                const feldGesperrt = data.isCalculated || kunstGesperrt;
+                const eingabeHilfe = data.isCalculated
+                    ? 'Automatischer Durchschnitt (GEWI) – nicht direkt änderbar'
+                    : kunstGesperrt
+                        ? 'Kunstnote aus Klasse 9 – gesperrt, weil das Fach in Klasse 10 nicht mehr unterrichtet wird (Schloss klicken zum Ändern)'
+                        : kunstUebernahme
+                            ? 'Kunstnote aus Klasse 9 eintragen – der Export der Klasse 10 liefert sie nicht mit'
+                            : (istRegelwerkNeu() ? 'Note 1–6 eingeben (leer = o.B.)' : 'Punkte 0–15 eingeben (leer = o.B.)');
                 const yearPts = data.pts;
                 const yearNote = getNote(yearPts, data.lvl);
                 const examReady = !!cfg && examRowReady(key, student.exam);
@@ -1922,7 +2578,7 @@
                 <td class="px-7 py-4 font-bold ${data.isComponent ? 'text-slate-400 pl-10 text-[11px]' : 'text-slate-700'}">
                     ${data.isComponent ? '↳ ' : ''}${subjectDisplayLabel(data)}
                 </td>
-                ${isFGI ? (key === 'WPI' ? '<td class="px-7 py-4 text-center"><span class="text-slate-400">-</span></td>' : `
+                ${isFGI && istDifferenziert(key) ? `
                 <td class="px-7 py-4 text-center">
                     <div class="flex items-center justify-center gap-1.5">
                         ${hintBadge(data.lvl, data.pts)}
@@ -1931,17 +2587,20 @@
                             <option value="E" ${data.lvl === 'E' ? 'selected' : ''}>E-Kurs</option>
                         </select>
                     </div>
-                </td>`) : '<td class="px-7 py-4"></td>'}
+                </td>` : (isFGI ? '<td class="px-7 py-4 text-center"><span class="text-slate-400">-</span></td>' : '<td class="px-7 py-4"></td>')}
                 <td class="px-7 py-4">
                     <div class="relative flex items-center justify-center">
                         <input type="text" id="input-${key}" value="${data.pts !== null ? data.pts.toFixed(1) : ''}"
                                placeholder="O.B."
                                onchange="updatePts('${key}', this.value)"
                                onclick="this.select()"
-                               data-help="${data.isCalculated ? 'Automatischer Durchschnitt (GEWI) – nicht direkt änderbar' : 'Punkte 0–15 eingeben (leer = o.B.)'}"
-                               ${data.isCalculated ? 'readonly' : ''}
-                               class="grade-input w-16 text-center font-mono py-1 rounded-lg ${data.isCalculated ? 'bg-slate-200 cursor-not-allowed text-slate-500' : 'bg-slate-50'} border border-slate-200 text-sm ${data.isComponent ? 'opacity-60 scale-90' : ''}" />
+                               data-help="${eingabeHilfe}"
+                               title="${kunstGesperrt ? 'Note aus Klasse 9, unveränderbar' : ''}"
+                               ${feldGesperrt ? 'readonly' : ''}
+                               class="grade-input w-16 text-center font-mono py-1 rounded-lg ${feldGesperrt ? 'bg-slate-200 cursor-not-allowed text-slate-500' : 'bg-slate-50'} border border-slate-200 text-sm ${data.isComponent ? 'opacity-60 scale-90' : ''}" />
                         ${data.isCalculated ? '<span class="absolute left-1/2 translate-x-[2.25rem] text-xs text-slate-400">Ø</span>' : ''}
+                        ${kunstGesperrt ? '<button onclick="kunstEntsperren()" title="Note aus Klasse 9 – zum Ändern entsperren" data-help="Kunstnote aus Klasse 9 zum Ändern freigeben" class="absolute left-1/2 translate-x-[2.25rem] text-xs text-slate-400 hover:text-indigo-600">🔒</button>' : ''}
+                        ${(kunstUebernahme && data.pts === null) ? '<span title="Note aus Klasse 9 eintragen" class="absolute left-1/2 translate-x-[2.25rem] text-xs text-slate-400">Kl. 9</span>' : ''}
                     </div>
                 </td>
                 ${!examOn ? '' : (isFGI ? `
@@ -1952,8 +2611,8 @@
                     </div>
                 </td>` : '<td class="px-7 py-4"></td>')}
                 <td class="px-7 py-4 text-right">
-                    <span class="inline-block w-8 h-8 leading-8 text-center rounded-lg font-bold text-sm ${getNote(data.pts, data.lvl) > 4 ? 'bg-red-100 text-red-600' : 'bg-slate-100 text-slate-800'} ${data.isComponent ? 'scale-75 opacity-60' : ''}">
-                        ${getNote(data.pts, data.lvl)}
+                    <span class="inline-block w-8 h-8 leading-8 text-center rounded-lg font-bold text-sm ${noteAnzeige(data.pts, data.lvl) > 4 ? 'bg-red-100 text-red-600' : 'bg-slate-100 text-slate-800'} ${data.isComponent ? 'scale-75 opacity-60' : ''}">
+                        ${noteAnzeige(data.pts, data.lvl)}
                     </span>
                 </td>
             </tr>`;
@@ -1966,17 +2625,33 @@
             document.getElementById('tableFGI').innerHTML = baseRes.stats.fgiRes.map(r => buildRow(r.key, r, true)).join('');
             document.getElementById('tableFGII').innerHTML = baseRes.stats.fgiiRes.map(r => buildRow(r.key, r, false)).join('');
 
-            // FG-II-Fachliste im Kopf: Kunst/Musik je Stufe nennen (Produktiv-Build ohne appStage unverändert).
-            // Nur noch Klasse 9/10 betroffen -- Klasse 7/8 zeigen den Notenspiegel (eigene Ansicht).
+            // Fachlisten in den Tabellenköpfen. Im Mehrstufen-Build bleibt es bei den bisherigen
+            // festen Texten je Stufe; in der Standalone werden sie aus den tatsächlich gerechneten
+            // Fächern gebildet (neue FG-I-Einteilung nach § 36 Abs. 1, Kunst/Musik je Jahrgang).
+            const fgiList = document.getElementById('fgiSubjectList');
             const fgiiList = document.getElementById('fgiiSubjectList');
-            if (fgiiList) {
-                const wpii = '<span class="wiki-term" data-term="wp2">WP II</span>';
-                if (appStage === '10') {
-                    fgiiList.innerHTML = `BIO, WAT, MUSIK, LER, KU (Vorjahr), SP, ${wpii}, GEWI (EK, GE, PB)`;
-                } else if (appStage) {
-                    fgiiList.innerHTML = `BIO, WAT, LER, KU, SP, ${wpii}, GEWI (EK, GE, PB)`;
-                }
+            const wpii = '<span class="wiki-term" data-term="wp2">WP II</span>';
+            if (fgiiList && appStage === '10') {
+                fgiiList.innerHTML = `BIO, WAT, MUSIK, LER, KU (Vorjahr), SP, ${wpii}, GEWI (EK, GE, PB)`;
+            } else if (fgiiList && appStage) {
+                fgiiList.innerHTML = `BIO, WAT, LER, KU, SP, ${wpii}, GEWI (EK, GE, PB)`;
+            } else if (appStage === null) {
+                const fachName = (r) => {
+                    if (r.key === 'GEWI (Ø)') return 'GEWI (EK, GE, PB)';
+                    if (r.key === 'WPI') return '<span class="wiki-term" data-term="wp1">WP I</span>';
+                    if (r.key === 'WPII') return wpii;
+                    if (r.key === 'KU' && istKlasse10Faecher()) return 'KU (Klasse 9)';
+                    return SUBJECT_LABELS[r.key] || r.key;
+                };
+                const liste = (rows) => rows.filter(r => !r.isComponent).map(fachName).join(', ');
+                if (fgiList) fgiList.innerHTML = liste(baseRes.stats.fgiRes);
+                if (fgiiList) fgiiList.innerHTML = liste(baseRes.stats.fgiiRes);
             }
+            // Spaltenüberschrift: im neuen Recht wird in Noten eingegeben, nicht in Punkten.
+            ['fgiPtsHeader', 'fgiiPtsHeader'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el && appStage === null) el.textContent = istRegelwerkNeu() ? 'Note' : 'Punkte';
+            });
             // Prüfungs-Spalte (Kopf + <col>-Breite) nur in Klasse 10 zeigen – in BEIDEN Tabellen
             // gleich schalten, damit die Spaltenbreiten (und damit Punkte/Note) übereinstimmen.
             ['fgiExamHeader', 'fgiiExamHeader', 'fgiExamCol', 'fgiiExamCol'].forEach(id => {
@@ -1984,12 +2659,18 @@
                 if (el) el.classList.toggle('hidden', !examOn);
             });
 
+            // Punktziele gibt es nur im ALTEN Recht – die neue Sek I-V kennt keine Punktsummen
+            // mehr (§§ 36/37), dort zeigen die Karten Durchschnittsnote und Ausfälle.
+            const neuesRecht = res.stats.mode === 'neu';
+
             // Dynamische Ziele bestimmen (Next Level Principle)
             // Default: EBR Ziel
-            let currentTarget = res.stats.targets.ebr;
+            let currentTarget = neuesRecht ? { total: 0, fg2: 0 } : res.stats.targets.ebr;
             let currentLabel = "BBR/EBR";
 
-            if (res.FOR.isMet) {
+            if (neuesRecht) {
+                currentLabel = res.FOR.isMet ? "FORQ" : (res.EBR.isMet ? "FOR" : "BBR/EBR");
+            } else if (res.FOR.isMet) {
                 // Wenn FOR erreicht, zeige FORQ Ziele
                 currentTarget = res.stats.targets.forq;
                 currentLabel = "FORQ";
@@ -2000,7 +2681,24 @@
             }
 
             // Scorecards
-            document.getElementById('scoreCards').innerHTML = `
+            document.getElementById('scoreCards').innerHTML = neuesRecht ? `
+            <div class="grid grid-cols-2 gap-4">
+                <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm">
+                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Ø Note</p>
+                    <div class="flex items-end justify-between">
+                        <span class="text-3xl font-black text-slate-900">${res.stats.avgNote !== null ? res.stats.avgNote.toFixed(2).replace('.', ',') : '–'}</span>
+                    </div>
+                </div>
+                <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm">
+                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Unter „ausreichend&#34;</p>
+                    <div class="flex items-end justify-between">
+                        <span class="text-3xl font-black ${res.stats.unter4 ? 'text-red-600' : 'text-slate-900'}">${res.stats.unter4}</span>
+                        <span class="text-xs font-bold text-slate-400 pb-1">Fächer</span>
+                    </div>
+                    <p class="text-[10px] text-slate-400 mt-3">${res.stats.eKurse} E-Kurs${res.stats.eKurse === 1 ? '' : 'e'} · kein Ausgleich mehr möglich</p>
+                </div>
+            </div>
+        ` : `
             <div class="grid grid-cols-2 gap-4">
                 <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm">
                     <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Punkte FG II </p>
@@ -2038,11 +2736,11 @@
             ` : '';
 
             // Abschluss Matrix
-            const targetTotals = { 'BBR/EBR': res.stats.targets.ebr.total, 'FOR': res.stats.targets.for.total, 'FORQ': res.stats.targets.forq.total };
+            const targetTotals = neuesRecht ? {} : { 'BBR/EBR': res.stats.targets.ebr.total, 'FOR': res.stats.targets.for.total, 'FORQ': res.stats.targets.forq.total };
             const statusTermKey = { 'BBR/EBR': 'ebr', 'FOR': 'for', 'FORQ': 'forq' };
             const buildStatusBox = (title, data) => {
                 const tgt = targetTotals[title] || 0;
-                const pct = tgt ? Math.min(100, Math.round(res.stats.sumTotal / tgt * 100)) : 0;
+                const pct = (tgt && !neuesRecht) ? Math.min(100, Math.round(res.stats.sumTotal / tgt * 100)) : 0;
                 const barColor = data.isMet ? 'bg-emerald-500' : (pct >= 80 ? 'bg-amber-400' : 'bg-indigo-400');
                 const termKey = statusTermKey[title];
                 const titleHtml = termKey ? `<span class="wiki-term" data-term="${termKey}">${title}</span>` : title;
@@ -2054,6 +2752,7 @@
                         ${data.isMet ? '✓' : '×'}
                     </span>
                 </div>
+                ${neuesRecht ? '' : `
                 <div class="mb-4">
                     <div class="flex justify-between text-[10px] font-bold text-slate-400 mb-1">
                         <span>Gesamtpunkte</span>
@@ -2062,7 +2761,7 @@
                     <div class="h-2 rounded-full bg-slate-100 overflow-hidden">
                         <div class="h-full rounded-full ${barColor} transition-all" style="width:${pct}%"></div>
                     </div>
-                </div>
+                </div>`}
                 <div class="space-y-2">
                     ${data.details.map(d => {
                 const s = d.status || (d.ok ? 'ok' : 'fail');
@@ -2092,7 +2791,20 @@
                     </div>
                 </div>` : '';
 
+            // Klasse 7/8: Die Versetzung (§ 36 Abs. 2) ist dort die zutreffende Entscheidung; die
+            // Abschluss-Karten stehen darunter als ausdrücklich benannte Prognose.
+            const noteJg = typeof istNoteJahrgang === 'function' && istNoteJahrgang();
+            const versetzungHtml = (noteJg && res.VERSETZUNG)
+                ? buildStatusBox('Versetzung in die nächste Jahrgangsstufe', res.VERSETZUNG)
+                : '';
+            const prognoseHinweis = noteJg ? `
+                <div class="text-[11px] font-bold uppercase tracking-widest text-slate-400 pt-2">
+                    Abschlussprognose – kein amtlicher Abschluss
+                </div>` : '';
+
             document.getElementById('statusMatrix').innerHTML = adjustmentHtml + examBannerHtml + `
+            ${versetzungHtml}
+            ${prognoseHinweis}
             ${buildStatusBox('BBR/EBR', res.EBR)}
             ${buildStatusBox('FOR', res.FOR)}
             ${buildStatusBox('FORQ', res.FORQ)}
@@ -2185,21 +2897,156 @@
 
         window.updatePts = (key, val) => {
             const student = students.find(s => s.id === activeStudentId);
+            // Wertebereich haengt am Rechtsstand: altes Recht Punkte 0-15, neues Recht Noten 1-6.
+            const [min, max] = istRegelwerkNeu() ? [1, 6] : [0, 15];
             if (val.trim() === "") {
                 student.grades[key].pts = null;
             } else {
                 let pts = parseFloat(val.replace(',', '.'));
                 if (isNaN(pts)) student.grades[key].pts = null;
-                else student.grades[key].pts = Math.max(0, Math.min(15, pts));
+                else student.grades[key].pts = Math.max(min, Math.min(max, pts));
             }
             lastFocusedId = "input-" + key;
             renderMainView();
         };
 
-        window.updateLvl = (key, val) => {
-            const student = students.find(s => s.id === activeStudentId);
-            student.grades[key].lvl = val;
+        // --- Rechtsstand / Jahrgang / differenziertes NaWi-Fach (nur Standalone) -------------
+        // Der Wechsel aendert NUR die Bewertung, nie die eingegebenen Werte. Weil Punkte (0-15)
+        // und Noten (1-6) im selben Feld stehen, wird beim Wechsel ins neue Recht einmal
+        // angeboten, die vorhandenen Punkte ueber die bisherige Notenskala umzurechnen.
+        window.setRuleset = (val) => {
+            if (val === ruleset) return;
+            // § 59 nennt als Uebergang nur die Jahrgangsstufen 9 und 10 -- in Klasse 7/8 gilt seit
+            // dem 01.08.2026 ausschliesslich das neue Recht.
+            if (val === 'alt' && istNoteJahrgang()) {
+                if (!stilleUmstellung) showToast('In Klasse 7 und 8 gilt seit dem 1. August 2026 ausschließlich die neue Sek I-V – das alte Punktesystem ist dort nicht mehr anwendbar (§ 59).', 'info');
+                return;
+            }
+            // Unveraenderte Beispielschüler werden still gegen die Fassung des neuen Rechtsstands
+            // getauscht (gleicher Leistungsstand, s. makeExamples in state.js) -- so steht dort nie
+            // eine "Note 12". Eigene oder importierte Daten bleiben unberuehrt.
+            if (students.length && students.every(s => s.isExample)) {
+                ruleset = val;
+                students = makeExamples(val);
+                activeStudentId = students[0].id;
+                lastFocusedId = null;
+                snapshotBaseline();
+                renderSidebar();
+                renderMainView();
+                return;
+            }
+            if (val === 'neu' && students.some(s => Object.values(s.grades).some(g => g.pts !== null && g.pts > 6))) {
+                if (confirm('Im neuen Recht wird in Noten 1–6 bewertet, eingetragen sind aber Punkte 0–15.\n\n'
+                    + 'Punkte jetzt in Noten umrechnen (nach der bisherigen Notenskala)?\n'
+                    + 'Abbrechen lässt alle Werte unverändert stehen.')) {
+                    students.forEach(s => Object.keys(s.grades).forEach(k => {
+                        const g = s.grades[k];
+                        if (g.pts === null) return;
+                        const n = getNote(g.pts, k === 'WPI' || k === 'WPII' ? 'N' : g.lvl);
+                        if (typeof n === 'number') g.pts = n;
+                    }));
+                }
+            }
+            ruleset = val;
+            if (!stilleUmstellung) showToast(val === 'neu'
+                ? 'Rechtsstand: Sek I-V vom 6. August 2026 – Noten 1–6, kein Ausgleich mehr.'
+                : 'Rechtsstand: Sek I-V 2007 – Punkte 0–15 (Übergangsregelung § 59).', 'info');
+            renderSidebar();
             renderMainView();
+        };
+
+        window.setKlassenstufe = (val) => {
+            if (val === klassenstufe) return;
+            const warNoteJahrgang = istNoteJahrgang();
+            klassenstufe = val;
+            // Klasse 7/8: nur neues Recht. Steht dort noch das alte eingestellt, wird es mit
+            // umgestellt -- inklusive der Beispielschüler, damit keine "Note 12" stehen bleibt.
+            if (istNoteJahrgang() && ruleset !== 'neu') {
+                if (students.length && students.every(s => s.isExample)) {
+                    ruleset = 'neu';
+                    students = makeExamples('neu');
+                    activeStudentId = students[0].id;
+                    snapshotBaseline();
+                } else {
+                    ruleset = 'neu';
+                }
+                if (!stilleUmstellung) showToast('Klasse ' + val + ': Es gilt ausschließlich die neue Sek I-V (Noten 1–6).', 'info');
+            } else if (!stilleUmstellung && val === '10') {
+                showToast('Klasse 10: Musik zählt mit, die Kunstnote aus Klasse 9 wird übernommen.', 'info');
+            } else if (!stilleUmstellung && warNoteJahrgang && !istNoteJahrgang()) {
+                showToast('Klasse ' + val + ': Rechtsstand frei wählbar – für 2026/27 gilt hier noch das alte Recht (§ 59).', 'info');
+            }
+            lastFocusedId = null;
+            renderSidebar();
+            renderMainView();
+        };
+
+        // Kunst in Klasse 10 stammt aus Klasse 9. Ist eine Note eingetragen, ist das Feld gesperrt;
+        // dieser Schalter gibt es bewusst wieder frei (pro Sitzung, nicht gespeichert).
+        let kunstEntsperrt = false;
+        window.kunstEntsperren = () => {
+            kunstEntsperrt = true;
+            lastFocusedId = 'input-KU';
+            renderMainView();
+        };
+
+        window.setNawiFgi = (val) => {
+            nawiFgi = val;
+            renderSidebar();
+            renderMainView();
+        };
+
+        // Schalterzustand sichtbar machen; im Mehrstufen-Build bleibt das Panel verborgen.
+        // Segment-Schalter im Stil der App: heller Track, aktives Segment als weisse Pille.
+        // Hoehe h-11 (44px) auf dem Smartphone, sm:h-9 (36px) ab Tablet -- Touch-tauglich.
+        const SEG_BASIS = 'h-11 sm:h-9 rounded-lg text-sm font-black transition-colors flex items-center justify-center';
+        const SEG_AKTIV = SEG_BASIS + ' bg-indigo-600 text-white shadow-sm';
+        const SEG_AUS   = SEG_BASIS + ' text-slate-500 hover:bg-white hover:text-indigo-600';
+        const SEG_SPERR = SEG_BASIS + ' text-slate-300 cursor-not-allowed';
+
+        const refreshRegelwerkPanel = () => {
+            const panel = document.getElementById('regelwerkPanel');
+            if (!panel) return;
+            panel.classList.toggle('hidden', appStage !== null || !!window.STUDENT_EXPORT_MODE);
+            const setBtn = (id, aktiv, gesperrt) => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                el.className = gesperrt ? SEG_SPERR : (aktiv ? SEG_AKTIV : SEG_AUS);
+                el.disabled = !!gesperrt;
+            };
+
+            ['7', '8', '9', '10'].forEach(j => setBtn('btnKlasse' + j, klassenstufe === j));
+
+            // In Klasse 7/8 ist das alte Recht nicht mehr anwendbar (§ 59 nennt nur Jg. 9/10).
+            const nurNeu = istNoteJahrgang();
+            setBtn('btnRulesetAlt', ruleset === 'alt', nurNeu);
+            setBtn('btnRulesetNeu', ruleset === 'neu');
+            const altBtn = document.getElementById('btnRulesetAlt');
+            if (altBtn) altBtn.title = nurNeu
+                ? 'In Klasse 7/8 nicht mehr anwendbar (§ 59 nennt als Übergang nur Jg. 9/10)'
+                : 'Sek I-V 2007 – Punkte 0–15';
+
+            // Klartext statt Fachkuerzel: Was bedeutet die aktuelle Einstellung?
+            const hint = document.getElementById('rulesetHint');
+            if (hint) {
+                hint.innerHTML = nurNeu
+                    ? 'Noten 1–6. In Klasse 7 und 8 gilt <b>nur</b> das neue Recht.'
+                    : (ruleset === 'neu'
+                        ? 'Noten 1–6 · neue Sek I-V, seit 1. August 2026.'
+                        : 'Punkte 0–15 · für Jg. 9/10 bis Juli 2028 (§ 59).');
+            }
+            // Kurzform dessen, was den Jahrgang ausmacht -- macht Fehlgriffe sofort sichtbar.
+            const jgHint = document.getElementById('jahrgangHint');
+            if (jgHint) {
+                const texte = { '7': 'ohne CH, PB, MU', '8': 'ohne Kunst', '9': 'ohne Musik', '10': 'mit Musik + Kunst aus Kl. 9' };
+                jgHint.textContent = texte[klassenstufe] || '';
+            }
+
+            const sel = document.getElementById('nawiSelect');
+            if (sel) sel.value = nawiFgi;
+            // Ein NaWi wird erst ab Jahrgangsstufe 9 fachleistungsdifferenziert (§ 33 Abs. 2).
+            const wrap = document.getElementById('nawiWrap');
+            if (wrap) wrap.classList.toggle('hidden', ruleset !== 'neu' || nurNeu);
         };
 
         window.updateName = (val) => {
@@ -2226,7 +3073,7 @@
 
         window.deleteStudent = (id) => {
             if (students.length <= 1) {
-                alert('Der letzte Schüler kann nicht gelöscht werden!');
+                showToast('Der letzte Schüler kann nicht gelöscht werden.', 'error');
                 return;
             }
             const stu = students.find(s => s.id === id);
@@ -2265,9 +3112,12 @@
 
         window.exportCurrent = () => {
             const student = students.find(s => s.id === activeStudentId);
-            const res = calculateResults(student);
+            const res = getResults(student);
             const top = res.FORQ.isMet ? 'FOR-Q' : res.FOR.isMet ? 'FOR' : res.EBR.isMet ? 'EBR' : 'Kein Abschluss';
-            const text = `Abschluss-Analyse für ${student.name}\nGesamtpunkte: ${res.stats.sumTotal.toFixed(1)}\nHöchster Abschluss: ${top}`;
+            const kennzahl = res.stats.mode === 'neu'
+                ? `Fächer unter „ausreichend": ${res.stats.unter4}`
+                : `Gesamtpunkte: ${res.stats.sumTotal.toFixed(1)}`;
+            const text = `Abschluss-Analyse für ${student.name}\n${kennzahl}\nHöchster Abschluss: ${top}`;
             navigator.clipboard.writeText(text);
             const btn = event.currentTarget;
             const oldHtml = btn.innerHTML;
@@ -2295,14 +3145,29 @@
                     const a1Peek = String((jsonData[0] && jsonData[0][0]) || '');
                     const kmPeek = a1Peek.match(/Klasse[:\s]+([A-Za-z0-9]+)/i);
                     const stagePeek = (typeof deriveStageFromClass === 'function') ? deriveStageFromClass(kmPeek ? kmPeek[1] : '') : null;
-                    const noteMode = stagePeek === '7' || stagePeek === '8';
+                    // WERTEBEREICH ERKENNEN: Punkte gehen bis 15, Noten nur bis 6. Dafuer wird die
+                    // Datei zunaechst mit der Noten-Annahme gelesen (dabei bleiben Nachkommastellen
+                    // erhalten, es wird nichts gerundet) und der groesste Wert betrachtet. Liegt er
+                    // ueber 6, kann es nur eine Punkte-Datei sein. Klasse 7/8 vergeben ohnehin immer
+                    // Noten; in Klasse 9/10 entscheidet seit der Sek I-V 2026 die Datei selbst,
+                    // ob nach altem (Punkte) oder neuem Recht (Noten) gerechnet wird.
+                    const probe = (stagePeek === '11' && typeof parseK11Data === 'function')
+                        ? null : parseExcelData(jsonData, true);
+                    const probeWerte = probe
+                        ? probe.flatMap(st => Object.values(st.grades).map(g => g.pts)).filter(v => v !== null)
+                        : [];
+                    const maxWert = probeWerte.length ? Math.max(...probeWerte) : null;
+                    // null = keine Werte in der Datei -> Erkennung nicht moeglich, Einstellung bleibt.
+                    const dateiHatNoten = maxWert === null ? null : maxWert <= 6;
+                    const noteMode = stagePeek === '7' || stagePeek === '8'
+                        || (dateiHatNoten === null ? (istRegelwerkNeu() || istNoteJahrgang()) : dateiHatNoten);
 
                     // Klasse 11 hat ein eigenes Export-Format: konkrete Fachspalten (DE, MA, EN,
                     // BI, …, FR, IF), Werte wie "6,85 (LK)" / "8,48 (GK)", LEERE Zellen = Fach
                     // nicht gewählt (individuelle Kurswahl in der Einführungsphase).
                     const importedStudents = (stagePeek === '11' && typeof parseK11Data === 'function')
                         ? parseK11Data(jsonData)
-                        : parseExcelData(jsonData, noteMode);
+                        : (noteMode ? probe : parseExcelData(jsonData, false));
 
                     if (importedStudents.length === 0) {
                         showToast('Keine gültigen Schülerdaten gefunden! Ist „Schülername" in der Excel vorhanden?', 'error');
@@ -2321,6 +3186,29 @@
                     if (typeof deriveStageFromClass === 'function' && typeof chooseStage === 'function') {
                         const st = deriveStageFromClass(meta.className);
                         if (st && st !== appStage) chooseStage(st);
+                    } else if (appStage === null && typeof deriveStageFromClass === 'function') {
+                        stilleUmstellung = true;   // die Zwischenschritte melden sich nicht einzeln
+                        // Standalone: Jahrgang 7-10 aus A1 uebernehmen. In Klasse 7/8 gilt zwingend
+                        // das neue Recht (§ 59) -- setKlassenstufe() stellt das mit um.
+                        const st = deriveStageFromClass(meta.className);
+                        if (st === '11' || st === '12-13') {
+                            showToast('Klasse ' + meta.className + ': Für die Oberstufe ist dieser Rechner nicht gedacht – bitte die Mehrstufen-Arbeitskopie verwenden.', 'error');
+                        } else if (st && st !== klassenstufe && typeof setKlassenstufe === 'function') {
+                            setKlassenstufe(st);
+                        }
+
+                        // Rechtsstand aus der Datei uebernehmen. Klasse 7/8 haengt nicht davon ab
+                        // (dort gilt nach § 59 ohnehin nur das neue Recht, setKlassenstufe hat das
+                        // bereits erledigt); in Klasse 9/10 entscheidet der Wertebereich.
+                        if (!istNoteJahrgang() && dateiHatNoten !== null) {
+                            const ausDatei = dateiHatNoten ? 'neu' : 'alt';
+                            if (ruleset !== ausDatei) {
+                                ruleset = ausDatei;   // direkt setzen: setRuleset() wuerde nach der
+                                                      // Umrechnung fragen -- die Werte kommen hier
+                                                      // aber frisch aus der Datei und sind stimmig.
+                            }
+                        }
+                        stilleUmstellung = false;
                     }
 
                     activeStudentId = students[0].id;
@@ -2332,7 +3220,22 @@
                     renderMainView();
                     snapshotBaseline();   // importierte Daten = neuer Ausgangszustand
 
-                    showToast(`✅ ${importedStudents.length} Schüler importiert`, 'success');
+                    // EINE Rueckmeldung, die alles Wesentliche nennt: wie viele, welche Klasse und
+                    // wonach gerechnet wird. Mehrere gestapelte Hinweise liest ohnehin niemand.
+                    let meldung = `✅ ${importedStudents.length} Schüler importiert`;
+                    if (meta.className) meldung += ` · Klasse ${meta.className}`;
+                    // Gemeldet wird der TATSAECHLICH verwendete Modus (noteMode), nicht nur das
+                    // Ergebnis der Wertebereichs-Pruefung: In Klasse 7/8 wird immer mit Noten
+                    // gerechnet, auch wenn ein Ausreisser in der Datei ueber 6 liegt.
+                    if (appStage === null && dateiHatNoten !== null) {
+                        meldung += noteMode
+                            ? ' · Noten 1–6 erkannt, Sek I-V 2026'
+                            : ' · Punkte 0–15 erkannt, altes Recht (§ 59)';
+                        if (noteMode && !istNoteJahrgang()) {
+                            meldung += '. Sind es doch Punkte, oben auf „alt · Punkte" umstellen.';
+                        }
+                    }
+                    showToast(meldung, 'success');
 
                 } catch (error) {
                     console.error('Import Error:', error);
@@ -2569,7 +3472,7 @@
 
         // --- Class View Logic ---
         window.toggleClassView = () => {
-            // Klassenansicht basiert auf calculateResults() (Punkte/Abschluss) -- in Klasse 7/8
+            // Klassenansicht basiert auf getResults() (Punkte/Abschluss) -- in Klasse 7/8
             // (Notenspiegel, kein Punktesystem) nicht sinnvoll/verfuegbar.
             const cvCfg = typeof getStageConfig === 'function' ? getStageConfig() : null;
             if (cvCfg && cvCfg.kind === 'notenspiegel') {
@@ -2621,7 +3524,7 @@
         const sortClassList = (list) => {
             if (!classSort) return list;
             return [...list].sort((a, b) => {
-                const ra = calculateResults(a), rb = calculateResults(b);
+                const ra = getResults(a), rb = getResults(b);
                 if (classSort === 'up' || classSort === 'down') {
                     const va = studentCourseChanges(ra)[classSort], vb = studentCourseChanges(rb)[classSort];
                     if (vb !== va) return vb - va;
@@ -2637,7 +3540,7 @@
                     const ma = classBucket(ra) === classSort ? 0 : 1, mb = classBucket(rb) === classSort ? 0 : 1;
                     if (ma !== mb) return ma - mb;
                 }
-                return rb.stats.sumTotal - ra.stats.sumTotal;
+                return rb.stats.sortScore - ra.stats.sortScore;
             });
         };
 
@@ -2661,13 +3564,14 @@
 
             // Zusammenfassung über die GESAMTE Klasse (nicht gefiltert)
             let cFORQ = 0, cFOR = 0, cEBR = 0, cNone = 0, cUp = 0, cDown = 0;
-            let sumPts = 0, noteSum = 0, noteCount = 0;
+            let sumPts = 0, noteSum = 0, noteCount = 0, unter4Gesamt = 0;
             students.forEach(s => {
-                const res = calculateResults(s);
+                const res = getResults(s);
                 const b = classBucket(res);
                 if (b === 'forq') cFORQ++; else if (b === 'for') cFOR++; else if (b === 'ebr') cEBR++; else cNone++;
                 const ch = studentCourseChanges(res); cUp += ch.up; cDown += ch.down;
-                sumPts += res.stats.sumTotal;
+                sumPts += (res.stats.sumTotal || 0);
+                unter4Gesamt += (res.stats.unter4 || 0);
                 const ag = classAvgGrade(res); if (!isNaN(ag)) { noteSum += ag; noteCount++; }
             });
             const avgPts = students.length ? sumPts / students.length : 0;
@@ -2689,6 +3593,9 @@
                 </button>`;
             };
             const avgNoteDisp = isNaN(avgNote) ? '–' : avgNote.toFixed(2);
+            // Spaltenkopf: im neuen Recht gibt es keine Gesamtpunkte mehr.
+            const ptsHead = document.getElementById('classPtsHeader');
+            if (ptsHead) ptsHead.textContent = istRegelwerkNeu() ? 'Fächer < 4' : 'Gesamtpunkte';
             const summary = document.getElementById('classSummary');
             if (summary) summary.innerHTML =
                 chip('Schüler', students.length, 'bg-white text-slate-700 border border-slate-200', null) +
@@ -2697,7 +3604,9 @@
                 chip('nur BBR/EBR', cEBR, 'bg-amber-100 text-amber-700', 'ebr') +
                 chip('kein Abschluss', cNone, 'bg-slate-100 text-slate-500', 'none') +
                 chip('Ø Note', avgNoteDisp, 'bg-sky-50 text-sky-700 border border-sky-200', 'note') +
-                chip('Ø Punkte', avgPts.toFixed(1), 'bg-violet-50 text-violet-700 border border-violet-200', 'points') +
+                (istRegelwerkNeu()
+                    ? chip('Fächer < 4', unter4Gesamt, 'bg-violet-50 text-violet-700 border border-violet-200', 'points')
+                    : chip('Ø Punkte', avgPts.toFixed(1), 'bg-violet-50 text-violet-700 border border-violet-200', 'points')) +
                 chip('Hochstufung ↑', cUp, 'bg-emerald-50 text-emerald-700 border border-emerald-200', 'up') +
                 chip('Herabstufung ↓', cDown, 'bg-red-50 text-red-700 border border-red-200', 'down');
 
@@ -2725,7 +3634,7 @@
             }
 
             tbody.innerHTML = list.map(s => {
-                const res = calculateResults(s);
+                const res = getResults(s);
 
                 const allSubjects = [...res.stats.fgiRes, ...res.stats.fgiiRes];
                 const ratedSubjects = allSubjects.filter(sub => sub.pts !== null && !sub.isComponent);
@@ -2760,7 +3669,7 @@
                          <span class="font-mono font-bold text-slate-600 px-2 py-1 rounded-lg">${avgGrade}</span>
                     </td>
                     <td class="px-6 py-4 text-center">
-                         <span class="font-mono font-bold text-slate-600 bg-slate-100 px-2 py-1 rounded-lg">${res.stats.sumTotal.toFixed(1)}</span>
+                         <span class="font-mono font-bold text-slate-600 bg-slate-100 px-2 py-1 rounded-lg">${res.stats.mode === 'neu' ? res.stats.unter4 : res.stats.sumTotal.toFixed(1)}</span>
                     </td>
                     <td class="px-6 py-4 text-center whitespace-normal min-w-[8rem]">${changes.html}</td>
                 </tr>
@@ -2841,7 +3750,7 @@
             if (nsCfg && nsCfg.kind === 'notenspiegel') return getNotenspiegelReportHTML(student, nsCfg);
             if (nsCfg && nsCfg.kind === 'k11' && typeof getK11ReportHTML === 'function') return getK11ReportHTML(student);
 
-            const res = calculateResults(student);
+            const res = getResults(student);
             const topAbschluss = res.FORQ.isMet ? 'FOR-Q' : res.FOR.isMet ? 'FOR' : res.EBR.isMet ? 'EBR' : 'Kein Abschluss';
 
             const allSubjects = [...res.stats.fgiRes, ...res.stats.fgiiRes];
@@ -2881,10 +3790,14 @@
                     </div>`;
             }
 
-            // Ziel-Bestimmung für Druck (Gleiche Logik wie Dashboard)
-            let currentTarget = res.stats.targets.ebr;
-            if (res.FOR.isMet) currentTarget = res.stats.targets.forq;
-            else if (res.EBR.isMet) currentTarget = res.stats.targets.for;
+            // Ziel-Bestimmung für Druck (Gleiche Logik wie Dashboard). Das neue Recht kennt
+            // keine Punktziele mehr (§§ 36/37) -- dort steht statt der Punktzahl die Zahl der
+            // Fächer unter „ausreichend" im Kopf.
+            const neuesRecht = res.stats.mode === 'neu';
+            const noteJgDruck = typeof istNoteJahrgang === 'function' && istNoteJahrgang();
+            let currentTarget = neuesRecht ? { total: 0, fg2: 0 } : res.stats.targets.ebr;
+            if (!neuesRecht && res.FOR.isMet) currentTarget = res.stats.targets.forq;
+            else if (!neuesRecht && res.EBR.isMet) currentTarget = res.stats.targets.for;
 
             const renderRows = (data) => data.map((item, index) => `
                 <tr class="${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}">
@@ -2893,7 +3806,7 @@
                     </td>
                     <td class="p-1 text-gray-600 border-b border-gray-200 text-[10px] uppercase tracking-wider">${item.lvl === 'E' || item.lvl === 'G' ? item.lvl : ''}${(() => { const h = courseChangeHint(item.lvl, item.pts); return h ? `<span class="${h.color} font-bold ml-1">${h.arrow}</span>` : ''; })()}</td>
                     <td class="p-1 text-right font-mono border-b border-gray-200 text-xs ${item.isComponent ? 'opacity-50' : ''}">${item.note === 'O.B.' ? 'O.B.' : String(item.note).replace('.', ',')}</td>
-                    <td class="p-1 text-right font-bold border-b border-gray-200 text-blue-800 text-xs ${item.isComponent ? 'opacity-50' : ''}">${item.pts !== null ? item.pts.toFixed(1) : '-'}</td>
+                    ${neuesRecht ? '' : `<td class="p-1 text-right font-bold border-b border-gray-200 text-blue-800 text-xs ${item.isComponent ? 'opacity-50' : ''}">${item.pts !== null ? item.pts.toFixed(1) : '-'}</td>`}
                 </tr>
             `).join('');
 
@@ -2923,8 +3836,9 @@
                     <header class="border-b-2 border-gray-800 pb-2 mb-4 shrink-0">
                         <div class="flex justify-between items-end">
                             <div>
-                                <h1 class="text-2xl font-bold uppercase tracking-wide text-gray-900">Leistungsübersicht</h1>
-                                <p class="text-gray-600 mt-1 text-sm">${classLabel()} – Abschlussberechnung</p>
+                                <h1 class="text-2xl font-bold uppercase tracking-wide text-gray-900">${noteJgDruck ? 'Notenübersicht' : 'Leistungsübersicht'}</h1>
+                                <p class="text-gray-600 mt-1 text-sm">${classLabel()} – ${noteJgDruck ? 'Versetzung und Abschlussprognose (kein amtlicher Abschluss)' : 'Abschlussberechnung'}</p>
+                                <p class="text-[10px] text-gray-500 mt-0.5">${regelwerkDruckzeile()}</p>
                             </div>
                             <div class="text-right">
                                 <p class="font-semibold text-base">${student.name}</p>
@@ -2942,10 +3856,12 @@
                                 <p class="text-lg font-bold text-blue-600 mt-1">${avgGrade}</p>
                             </div>
                             <div class="bg-gray-50 p-2 rounded border border-gray-200 text-center">
-                                <p class="text-[10px] text-gray-500 uppercase font-semibold">Gesamtpunkte</p>
+                                <p class="text-[10px] text-gray-500 uppercase font-semibold">${neuesRecht ? 'Fächer unter „ausreichend“' : 'Gesamtpunkte'}</p>
                                 <div class="flex items-baseline justify-center gap-1 mt-1">
-                                    <span class="text-lg font-bold text-gray-800">${res.stats.sumTotal.toFixed(1)}</span>
-                                    <span class="text-lg text-gray-500 font-medium">/ ${currentTarget.total}</span>
+                                    ${neuesRecht
+                                        ? `<span class="text-lg font-bold ${res.stats.unter4 ? 'text-red-600' : 'text-gray-800'}">${res.stats.unter4}</span>`
+                                        : `<span class="text-lg font-bold text-gray-800">${res.stats.sumTotal.toFixed(1)}</span>
+                                           <span class="text-lg text-gray-500 font-medium">/ ${currentTarget.total}</span>`}
                                 </div>
                             </div>
                             <div class="bg-gray-50 p-2 rounded border border-gray-200 text-center">
@@ -2955,10 +3871,14 @@
                         </section>
                         
                         <!-- Conditions Row -->
+                        ${noteJgDruck && res.VERSETZUNG ? `
+                        <div class="mb-3 shrink-0">
+                            ${buildPrStatusBox('Versetzung (§ 36 Abs. 2)', res.VERSETZUNG)}
+                        </div>` : ''}
                         <div class="grid grid-cols-3 gap-3 mb-4 shrink-0">
-                            ${buildPrStatusBox('EBR', res.EBR)}
-                            ${buildPrStatusBox('FOR', res.FOR)}
-                            ${buildPrStatusBox('FORQ', res.FORQ)}
+                            ${buildPrStatusBox(noteJgDruck ? 'BBR/EBR (Prognose)' : 'EBR', res.EBR)}
+                            ${buildPrStatusBox(noteJgDruck ? 'FOR (Prognose)' : 'FOR', res.FOR)}
+                            ${buildPrStatusBox(noteJgDruck ? 'FOR-Q (Prognose)' : 'FORQ', res.FORQ)}
                         </div>
 
                         ${examSectionHtml}
@@ -2973,7 +3893,7 @@
                                             <th class="p-1 text-xs">Fach</th>
                                             <th class="p-1 text-xs">Kurs</th>
                                             <th class="p-1 text-right text-xs">Note</th>
-                                            <th class="p-1 text-right text-xs">Pkt</th>
+                                            ${neuesRecht ? '' : '<th class="p-1 text-right text-xs">Pkt</th>'}
                                         </tr>
                                     </thead>
                                     <tbody>${renderRows(res.stats.fgiRes)}</tbody>
@@ -2987,7 +3907,7 @@
                                             <th class="p-1 text-xs">Fach</th>
                                             <th class="p-1 text-xs">Kurs</th>
                                             <th class="p-1 text-right text-xs">Note</th>
-                                            <th class="p-1 text-right text-xs">Pkt</th>
+                                            ${neuesRecht ? '' : '<th class="p-1 text-right text-xs">Pkt</th>'}
                                         </tr>
                                     </thead>
                                     <tbody>${renderRows(res.stats.fgiiRes)}</tbody>
@@ -3034,10 +3954,16 @@
 
             const restore = () => {
                 template.innerHTML = originalContent;
+                template.classList.remove('print-single');
                 window.removeEventListener('afterprint', restore);
             };
 
             template.innerHTML = html;
+            // Einzelbericht: In styles.css wird der Kasten damit auf genau eine bedruckbare
+            // Seite begrenzt (siehe .print-single) – sonst legt vor allem der Android-Druck-
+            // dialog eine leere zweite Seite an. Mehrseitige Drucke (Klassenlisten, alle
+            // Berichte) duerfen naturgemaess umbrechen und bekommen die Klasse nicht.
+            template.classList.toggle('print-single', !expectedPages || expectedPages === 1);
 
             // Desktop-App (Electron): Chromes Druckvorschau gibt es hier nicht. Stattdessen ein PDF
             // erzeugen und in der macOS-Vorschau öffnen. window.electronAPI wird nur von der Electron-
@@ -3118,7 +4044,10 @@
                 'students = ' + JSON.stringify([copy]) + ';' +
                 'activeStudentId = ' + JSON.stringify(copy.id) + ';' +
                 'meta = ' + JSON.stringify(meta) + ';' +
-                'appStage = ' + JSON.stringify(appStage) + ';';
+                'appStage = ' + JSON.stringify(appStage) + ';' +
+                'ruleset = ' + JSON.stringify(ruleset) + ';' +
+                'klassenstufe = ' + JSON.stringify(klassenstufe) + ';' +
+                'nawiFgi = ' + JSON.stringify(nawiFgi) + ';';
             clone.querySelector('body').appendChild(overrideScript);
 
             const html = '<!DOCTYPE html>\n' + clone.outerHTML;
@@ -3171,22 +4100,22 @@
             if (pcCfg && pcCfg.kind === 'k11' && typeof printK11ClassList === 'function') { printK11ClassList(); return; }
             // Gleiche Reihenfolge wie in der Klassenansicht (aktive Sortierung, s. classview.js).
             const rows = sortClassList(students).map(s => {
-                const res = calculateResults(s);
+                const res = getResults(s);
                 const mark = c => c.isMet ? '✓' : '';
                 const rated = [...res.stats.fgiRes, ...res.stats.fgiiRes].filter(x => x.pts !== null && !x.isComponent);
                 const avg = rated.length ? (rated.reduce((a, x) => a + (typeof x.note === 'number' ? x.note : 0), 0) / rated.length).toFixed(2) : '--';
                 const ch = res.stats.fgiRes.map(r => { const h = courseChangeHint(r.lvl, r.pts); return h ? subjectDisplayLabel(r) + ' ' + h.arrow : ''; }).filter(Boolean).join(', ');
                 const top = res.FORQ.isMet ? 'FOR-Q' : res.FOR.isMet ? 'FOR' : res.EBR.isMet ? 'EBR' : '–';
-                return `<tr><td style="text-align:left">${s.name}</td><td>${top}</td><td>${mark(res.EBR)}</td><td>${mark(res.FOR)}</td><td>${mark(res.FORQ)}</td><td>${avg}</td><td>${res.stats.sumTotal.toFixed(1)}</td><td style="text-align:left">${ch || '–'}</td></tr>`;
+                return `<tr><td style="text-align:left">${s.name}</td><td>${top}</td><td>${mark(res.EBR)}</td><td>${mark(res.FOR)}</td><td>${mark(res.FORQ)}</td><td>${avg}</td><td>${res.stats.mode === 'neu' ? res.stats.unter4 : res.stats.sumTotal.toFixed(1)}</td><td style="text-align:left">${ch || '–'}</td></tr>`;
             }).join('');
             const sortSuffix = classSort ? ` · sortiert nach ${CLASS_SORT_LABELS[classSort]}` : '';
             printTemplate(`
                 <div style="font-family:Inter,sans-serif;color:#1f2937">
                     <h1 style="font-size:1.4rem;font-weight:800;margin-bottom:2px">Klassenliste – Abschlussübersicht</h1>
-                    <p style="color:#6b7280;margin-bottom:12px;font-size:10pt">${classLabel()}${halfSuffix()} · ${students.length} Schüler · Stand ${new Date().toLocaleDateString('de-DE')}${sortSuffix}</p>
+                    <p style="color:#6b7280;margin-bottom:12px;font-size:10pt">${classLabel()}${halfSuffix()} · ${students.length} Schüler · Stand ${new Date().toLocaleDateString('de-DE')}${sortSuffix}${regelwerkDruckzeile() ? ' · ' + regelwerkDruckzeile() : ''}</p>
                     <table style="width:100%;border-collapse:collapse;font-size:9pt">
                         <thead><tr style="background:#f1f5f9">
-                            <th style="text-align:left">Name</th><th>Abschluss</th><th>BBR/EBR</th><th>FOR</th><th>FOR-Q</th><th>Ø Note</th><th>Punkte</th><th style="text-align:left">Kurswechsel</th>
+                            <th style="text-align:left">Name</th><th>Abschluss</th><th>BBR/EBR</th><th>FOR</th><th>FOR-Q</th><th>Ø Note</th><th>${istRegelwerkNeu() ? 'Fächer &lt; 4' : 'Punkte'}</th><th style="text-align:left">Kurswechsel</th>
                         </tr></thead>
                         <tbody>${rows}</tbody>
                     </table>
