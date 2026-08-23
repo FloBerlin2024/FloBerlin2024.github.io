@@ -738,7 +738,13 @@
                     </button>
                 </div>
                 <div class="p-6 overflow-y-auto custom-scrollbar space-y-4 text-sm text-slate-600 leading-relaxed">
-                    <p class="text-xs text-slate-400">Kurzfassung der Änderungen. Aktuelle Version: <span class="font-bold text-slate-600">v2.1.3</span>.</p>
+                    <p class="text-xs text-slate-400">Kurzfassung der Änderungen. Aktuelle Version: <span class="font-bold text-slate-600">v2.1.4</span>.</p>
+                    <div>
+                        <div class="flex items-baseline gap-2"><span class="font-extrabold text-indigo-700">v2.1.4</span><span class="text-xs font-bold text-slate-400">23.08.2026</span></div>
+                        <ul class="list-disc pl-5 mt-1 space-y-0.5">
+                            <li>Über den Schaltern steht jetzt nur noch „Rechtsstand" – der Zusatz „Sek I-V" ist weg. Den Begriff erklärt weiterhin das Regelwerk-Wiki.</li>
+                        </ul>
+                    </div>
                     <div>
                         <div class="flex items-baseline gap-2"><span class="font-extrabold text-indigo-700">v2.1.3</span><span class="text-xs font-bold text-slate-400">23.08.2026</span></div>
                         <ul class="list-disc pl-5 mt-1 space-y-0.5">
@@ -936,7 +942,7 @@
                             </svg>
                         </button>
                     </h1>
-                    <p class="text-xs text-slate-400 mt-2 uppercase tracking-widest font-bold">Sek I <button onclick="openChangelog()" class="text-slate-300 normal-case tracking-normal font-semibold hover:text-indigo-600 cursor-pointer underline decoration-dotted underline-offset-2 transition-colors" title="Was ist neu? Changelog &amp; Kontakt">· v2.1.3</button></p>
+                    <p class="text-xs text-slate-400 mt-2 uppercase tracking-widest font-bold">Sek I <button onclick="openChangelog()" class="text-slate-300 normal-case tracking-normal font-semibold hover:text-indigo-600 cursor-pointer underline decoration-dotted underline-offset-2 transition-colors" title="Was ist neu? Changelog &amp; Kontakt">· v2.1.4</button></p>
                     <p id="metaDisplay" class="mt-1 text-sm font-bold text-indigo-900"></p>
                     <!-- Stufen-Indikator (nur Arbeitskopie; von stages.js gefüllt) -->
                     <div id="stageIndicator" class="hidden mt-2"></div>
@@ -1009,9 +1015,7 @@
                   </div>
 
                   <div>
-                      <span id="rulesetLabel" class="block text-[11px] font-black uppercase tracking-widest text-slate-400 mb-1">Rechtsstand
-                          <span class="wiki-term normal-case tracking-normal font-bold" data-term="sekiv">Sek I-V</span>
-                      </span>
+                      <span id="rulesetLabel" class="block text-[11px] font-black uppercase tracking-widest text-slate-400 mb-1">Rechtsstand</span>
                       <div id="rulesetSegs" role="radiogroup" aria-labelledby="rulesetLabel"
                           class="grid grid-cols-2 gap-1 rounded-xl bg-slate-100 p-1">
                           <button id="btnRulesetAlt" role="radio" onclick="setRuleset('alt')"
