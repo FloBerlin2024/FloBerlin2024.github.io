@@ -436,9 +436,18 @@
     <!-- Gemeinsame Hover-Karte für Fachbegriffe (.wiki-term) -->
     <div id="wikiTip" class="no-print"></div>
 
-    <!-- UNDO/REDO/RESET: schwebend unten mittig, jeder Button nur sichtbar wenn nutzbar.
-         Links: Reset (weiß, alles verwerfen) · Mitte: Undo (orange, Schritt zurück) · rechts: Redo (orange, Schritt vor) -->
-    <div class="no-print fixed bottom-5 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3">
+    <!-- UNDO/REDO/RESET: schwebende Knöpfe, jeder nur sichtbar wenn nutzbar.
+         Links: Reset (weiß, alles verwerfen) · Mitte: Undo (orange, Schritt zurück) · rechts: Redo (orange, Schritt vor)
+
+         Ab Tablet (sm:) unten mittig wie bisher. Auf dem Smartphone WANDERN SIE NACH OBEN:
+         Unten steigt die Bildschirmtastatur hoch und verdeckt sie, genau während man Noten
+         eintippt. Editoren mit mehrstufiger Historie (Docs, Word, Notion) setzen Undo/Redo aus
+         demselben Grund nach oben; die Snackbar-Variante unten passt nur zu einmaligen Aktionen.
+         Rechts statt mittig und erst ab 80px Höhe, weil oben schon zwei Dinge liegen:
+         der Einklapp-Pfeil der Sidebar (rechts, y 16-56) und die Hinweis-Toasts (mittig ab y 16). -->
+    <div class="no-print fixed z-50 flex items-center gap-3
+                top-20 right-4
+                sm:top-auto sm:right-auto sm:bottom-5 sm:left-1/2 sm:-translate-x-1/2">
         <button id="resetBtn" onclick="resetAll()" title="Alle Änderungen zurücksetzen"
             data-help="Alle Änderungen verwerfen und auf den Ausgangszustand zurücksetzen (mit Rückfrage)"
             class="hidden h-12 px-5 rounded-full bg-white hover:bg-orange-50 text-orange-500 border border-orange-300 font-extrabold text-sm shadow-xl flex items-center justify-center transition-colors hover:scale-105">
@@ -756,7 +765,13 @@
                     </button>
                 </div>
                 <div class="p-6 overflow-y-auto custom-scrollbar space-y-4 text-sm text-slate-600 leading-relaxed">
-                    <p class="text-xs text-slate-400">Kurzfassung der Änderungen. Aktuelle Version: <span class="font-bold text-slate-600">v2.1.8</span>.</p>
+                    <p class="text-xs text-slate-400">Kurzfassung der Änderungen. Aktuelle Version: <span class="font-bold text-slate-600">v2.1.9</span>.</p>
+                    <div>
+                        <div class="flex items-baseline gap-2"><span class="font-extrabold text-indigo-700">v2.1.9</span><span class="text-xs font-bold text-slate-400">24.08.2026</span></div>
+                        <ul class="list-disc pl-5 mt-1 space-y-0.5">
+                            <li><b>Auf dem Smartphone sitzen Reset, Undo und Redo jetzt oben rechts</b> statt unten in der Mitte. Unten stieg die Bildschirmtastatur genau über sie – und beim Blättern lagen sie über der Notentabelle. Auf Tablet und Rechner bleibt alles wie gewohnt unten mittig.</li>
+                        </ul>
+                    </div>
                     <div>
                         <div class="flex items-baseline gap-2"><span class="font-extrabold text-indigo-700">v2.1.8</span><span class="text-xs font-bold text-slate-400">24.08.2026</span></div>
                         <ul class="list-disc pl-5 mt-1 space-y-0.5">
@@ -990,7 +1005,7 @@
                             </svg>
                         </button>
                     </h1>
-                    <p class="text-xs text-slate-400 mt-2 uppercase tracking-widest font-bold">Sek I <button onclick="openChangelog()" class="text-slate-300 normal-case tracking-normal font-semibold hover:text-indigo-600 cursor-pointer underline decoration-dotted underline-offset-2 transition-colors" title="Was ist neu? Changelog &amp; Kontakt">· v2.1.8</button></p>
+                    <p class="text-xs text-slate-400 mt-2 uppercase tracking-widest font-bold">Sek I <button onclick="openChangelog()" class="text-slate-300 normal-case tracking-normal font-semibold hover:text-indigo-600 cursor-pointer underline decoration-dotted underline-offset-2 transition-colors" title="Was ist neu? Changelog &amp; Kontakt">· v2.1.9</button></p>
                     <p id="metaDisplay" class="mt-1 text-sm font-bold text-indigo-900"></p>
                     <!-- Stufen-Indikator (nur Arbeitskopie; von stages.js gefüllt) -->
                     <div id="stageIndicator" class="hidden mt-2"></div>
