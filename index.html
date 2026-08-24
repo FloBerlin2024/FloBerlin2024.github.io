@@ -73,9 +73,10 @@
 
         /* Mehr Tiefe für Kartenelemente (Dashboard-Karten, Panels) – überschreibt
            Tailwinds dezentes shadow-sm gezielt per Doppelklassen-Selektor, ohne
-           Buttons/Badges/Modals (die eigene Shadow-Stufen haben) zu berühren. */
+           Buttons/Badges/Modals (die eigene Shadow-Stufen haben) zu berühren.
+           Seit der Vereinheitlichung der Radien tragen ALLE Flächen rounded-2xl;
+           die frühere Zeile für rounded-3xl ist damit gegenstandslos. */
         .glass-card.shadow-sm,
-        .rounded-3xl.shadow-sm,
         .rounded-2xl.shadow-sm {
             box-shadow: 0 10px 15px -3px rgba(15, 23, 42, 0.1), 0 4px 6px -4px rgba(15, 23, 42, 0.1);
         }
@@ -460,7 +461,7 @@
     <div id="wikiOverlay" class="hidden fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 no-print"
         onclick="if (event.target === this) closeWiki()">
         <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm"></div>
-        <div class="relative bg-white rounded-3xl shadow-2xl border border-slate-200 w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden">
+        <div class="relative bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden">
             <!-- Kopf + Suche -->
             <div class="p-5 sm:p-6 border-b border-slate-200 bg-slate-50/70">
                 <div class="flex items-center justify-between gap-3">
@@ -729,7 +730,7 @@
         <div id="changelogOverlay" class="hidden fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 no-print"
             onclick="if (event.target === this) closeChangelog()">
             <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm"></div>
-            <div class="relative bg-white rounded-3xl shadow-2xl border border-slate-200 w-full max-w-lg max-h-[85vh] flex flex-col overflow-hidden">
+            <div class="relative bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-lg max-h-[85vh] flex flex-col overflow-hidden">
                 <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between shrink-0">
                     <h3 class="text-lg font-extrabold text-slate-800 flex items-center gap-2"><span>🆕</span> Was ist neu</h3>
                     <button onclick="closeChangelog()" title="Schließen (Esc)"
@@ -738,7 +739,14 @@
                     </button>
                 </div>
                 <div class="p-6 overflow-y-auto custom-scrollbar space-y-4 text-sm text-slate-600 leading-relaxed">
-                    <p class="text-xs text-slate-400">Kurzfassung der Änderungen. Aktuelle Version: <span class="font-bold text-slate-600">v2.1.4</span>.</p>
+                    <p class="text-xs text-slate-400">Kurzfassung der Änderungen. Aktuelle Version: <span class="font-bold text-slate-600">v2.1.5</span>.</p>
+                    <div>
+                        <div class="flex items-baseline gap-2"><span class="font-extrabold text-indigo-700">v2.1.5</span><span class="text-xs font-bold text-slate-400">24.08.2026</span></div>
+                        <ul class="list-disc pl-5 mt-1 space-y-0.5">
+                            <li><b>Ruhigere Ecken:</b> Die Kachel mit dem Schülernamen war stark abgerundet (24&nbsp;px auf 80&nbsp;px Kante) und fiel dadurch aus dem Bild. Alle Flächen haben jetzt denselben Radius. Aus sieben verschiedenen Rundungen sind drei geworden: Karten und Kacheln 16&nbsp;px, Schaltflächen und Eingabefelder 12&nbsp;px, kleine Elemente darin 8&nbsp;px – runde Punkte und Pillen bleiben rund.</li>
+                            <li>Auf dem Smartphone wirkt das spürbar aufgeräumter: große Radien fressen dort Breite und lassen Karten aufgequollen aussehen.</li>
+                        </ul>
+                    </div>
                     <div>
                         <div class="flex items-baseline gap-2"><span class="font-extrabold text-indigo-700">v2.1.4</span><span class="text-xs font-bold text-slate-400">23.08.2026</span></div>
                         <ul class="list-disc pl-5 mt-1 space-y-0.5">
@@ -906,7 +914,7 @@
         <div id="qrOverlay" class="hidden fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 no-print"
             onclick="if (event.target === this) closeQr()">
             <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm"></div>
-            <div class="relative bg-white rounded-3xl shadow-2xl border border-slate-200 w-full max-w-xs flex flex-col overflow-hidden">
+            <div class="relative bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-xs flex flex-col overflow-hidden">
                 <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between shrink-0">
                     <h3 class="text-lg font-extrabold text-slate-800 flex items-center gap-2"><span>📱</span> QR-Code</h3>
                     <button onclick="closeQr()" title="Schließen (Esc)"
@@ -942,7 +950,7 @@
                             </svg>
                         </button>
                     </h1>
-                    <p class="text-xs text-slate-400 mt-2 uppercase tracking-widest font-bold">Sek I <button onclick="openChangelog()" class="text-slate-300 normal-case tracking-normal font-semibold hover:text-indigo-600 cursor-pointer underline decoration-dotted underline-offset-2 transition-colors" title="Was ist neu? Changelog &amp; Kontakt">· v2.1.4</button></p>
+                    <p class="text-xs text-slate-400 mt-2 uppercase tracking-widest font-bold">Sek I <button onclick="openChangelog()" class="text-slate-300 normal-case tracking-normal font-semibold hover:text-indigo-600 cursor-pointer underline decoration-dotted underline-offset-2 transition-colors" title="Was ist neu? Changelog &amp; Kontakt">· v2.1.5</button></p>
                     <p id="metaDisplay" class="mt-1 text-sm font-bold text-indigo-900"></p>
                     <!-- Stufen-Indikator (nur Arbeitskopie; von stages.js gefüllt) -->
                     <div id="stageIndicator" class="hidden mt-2"></div>
@@ -1102,7 +1110,7 @@
                     <!-- Links: Noteneditor -->
                     <div class="xl:col-span-2 space-y-6">
                         <!-- Fächergruppe I -->
-                        <section class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+                        <section class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                             <div
                                 class="px-6 py-4 bg-slate-50/80 border-b border-slate-200 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1">
                                 <h3 class="text-base font-bold flex flex-wrap items-center gap-2">
@@ -1138,7 +1146,7 @@
                         </section>
 
                         <!-- Fächergruppe II -->
-                        <section class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+                        <section class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                             <div
                                 class="px-6 py-4 bg-slate-50/80 border-b border-slate-200 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1">
                                 <h3 class="text-base font-bold flex flex-wrap items-center gap-2">
@@ -1177,7 +1185,7 @@
                         <div id="voluntaryExamSection" class="hidden"></div>
 
                         <!-- Bemerkungen / Hinweise -->
-                        <section class="bg-white rounded-3xl shadow-sm border border-amber-200 overflow-hidden">
+                        <section class="bg-white rounded-2xl shadow-sm border border-amber-200 overflow-hidden">
                             <div
                                 class="px-6 py-4 bg-amber-50/50 border-b border-amber-100 flex justify-between items-center">
                                 <h3 class="text-base font-bold text-amber-900 flex items-center gap-2">
@@ -1213,7 +1221,7 @@
                         <div id="statusMatrix" class="space-y-4"></div>
 
                         <!-- Info Box -->
-                        <div class="bg-indigo-900 text-white p-6 rounded-3xl shadow-xl relative overflow-hidden">
+                        <div class="bg-indigo-900 text-white p-6 rounded-2xl shadow-xl relative overflow-hidden">
                             <div class="absolute -right-4 -bottom-4 opacity-10">
                                 <svg class="w-32 h-32" fill="currentColor" viewBox="0 0 24 24">
                                     <path
@@ -1272,9 +1280,9 @@
             <!-- Class Overview View -->
             <div id="classView" class="hidden max-w-7xl mx-auto p-4 md:p-8 space-y-6">
                 <div
-                    class="glass-card p-6 md:p-10 rounded-[2.5rem] shadow-sm flex flex-col md:flex-row md:flex-wrap justify-between items-center gap-4">
+                    class="glass-card p-6 md:p-10 rounded-2xl shadow-sm flex flex-col md:flex-row md:flex-wrap justify-between items-center gap-4">
                     <div class="flex items-center gap-3 sm:gap-6 flex-1 min-w-0 w-full md:w-auto">
-                        <div class="w-12 h-12 sm:w-20 sm:h-20 rounded-2xl sm:rounded-3xl bg-indigo-600 flex items-center justify-center text-white shadow-xl shadow-indigo-100 flex-shrink-0">
+                        <div class="w-12 h-12 sm:w-20 sm:h-20 rounded-2xl bg-indigo-600 flex items-center justify-center text-white shadow-xl shadow-indigo-100 flex-shrink-0">
                             <svg class="w-6 h-6 sm:w-10 sm:h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
                                     d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z">
@@ -1317,7 +1325,7 @@
                         class="w-full sm:max-w-xs px-4 py-2.5 text-sm rounded-xl border border-slate-200 bg-white focus:ring-2 focus:ring-indigo-400 focus:outline-none">
                 </div>
 
-                <div class="glass-card rounded-[2rem] shadow-sm overflow-hidden border border-slate-200">
+                <div class="glass-card rounded-2xl shadow-sm overflow-hidden border border-slate-200">
                     <div class="overflow-x-auto">
                         <table class="w-full text-base whitespace-nowrap">
                             <thead>
@@ -2536,9 +2544,9 @@
 
             // Header
             document.getElementById('dashboardHeader').innerHTML = `
-            <div class="glass-card p-6 md:p-10 rounded-[2.5rem] shadow-sm flex flex-col xl:flex-row justify-between xl:items-center gap-5">
+            <div class="glass-card p-6 md:p-10 rounded-2xl shadow-sm flex flex-col xl:flex-row justify-between xl:items-center gap-5">
                 <div class="flex items-center gap-4 sm:gap-6 flex-1 min-w-0">
-                    <div class="w-14 h-14 sm:w-20 sm:h-20 rounded-2xl sm:rounded-3xl bg-indigo-600 flex items-center justify-center text-white text-2xl sm:text-3xl font-black shadow-xl shadow-indigo-100 uppercase flex-shrink-0">
+                    <div class="w-14 h-14 sm:w-20 sm:h-20 rounded-2xl bg-indigo-600 flex items-center justify-center text-white text-2xl sm:text-3xl font-black shadow-xl shadow-indigo-100 uppercase flex-shrink-0">
                         ${student.name.substring(0, 1)}
                     </div>
                     <div class="flex-1 min-w-0">
@@ -2789,13 +2797,13 @@
             // Scorecards
             document.getElementById('scoreCards').innerHTML = neuesRecht ? `
             <div class="grid grid-cols-2 gap-4">
-                <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm">
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
                     <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Ø Note</p>
                     <div class="flex items-end justify-between">
                         <span class="text-3xl font-black text-slate-900">${res.stats.avgNote !== null ? res.stats.avgNote.toFixed(2).replace('.', ',') : '–'}</span>
                     </div>
                 </div>
-                <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm">
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
                     <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Unter „ausreichend&#34;</p>
                     <div class="flex items-end justify-between">
                         <span class="text-3xl font-black ${res.stats.unter4 ? 'text-red-600' : 'text-slate-900'}">${res.stats.unter4}</span>
@@ -2806,7 +2814,7 @@
             </div>
         ` : `
             <div class="grid grid-cols-2 gap-4">
-                <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm">
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
                     <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Punkte FG II </p>
                     <div class="flex items-end justify-between">
                         <span class="text-3xl font-black text-slate-900">${res.stats.sumFG2.toFixed(1)}</span>
@@ -2816,7 +2824,7 @@
                         <div class="bg-indigo-500 h-full transition-all" style="width: ${Math.min(100, (res.stats.sumFG2 / currentTarget.fg2) * 100)}%"></div>
                     </div>
                 </div>
-                <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm">
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
                     <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Gesamtpunkte</p>
                     <div class="flex items-end justify-between">
                         <span class="text-3xl font-black text-slate-900">${res.stats.sumTotal.toFixed(1)}</span>
@@ -2851,7 +2859,7 @@
                 const termKey = statusTermKey[title];
                 const titleHtml = termKey ? `<span class="wiki-term" data-term="${termKey}">${title}</span>` : title;
                 return `
-            <div class="p-5 rounded-3xl border ${data.isMet ? 'border-emerald-200 bg-emerald-50/20' : 'border-slate-200 bg-white'} shadow-sm transition-all">
+            <div class="p-5 rounded-2xl border ${data.isMet ? 'border-emerald-200 bg-emerald-50/20' : 'border-slate-200 bg-white'} shadow-sm transition-all">
                 <div class="flex justify-between items-center mb-3">
                     <h4 class="font-black ${data.isMet ? 'text-emerald-700' : 'text-slate-800'} text-lg">${titleHtml}</h4>
                     <span class="w-8 h-8 rounded-full flex items-center justify-center ${data.isMet ? 'bg-emerald-500 text-white' : 'bg-slate-100 text-slate-400'}">
@@ -2956,7 +2964,7 @@
                         ? `<button onclick="addVoluntaryExam()" data-help="Freiwillige Zusatzprüfung hinzufügen" class="w-full py-2 bg-violet-50 text-violet-600 rounded-xl text-sm font-bold hover:bg-violet-100 transition-colors flex items-center justify-center gap-2"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>ZUSATZPRÜFUNG HINZUFÜGEN</button>`
                         : '<p class="text-xs text-slate-400 text-center">Maximal 3 Zusatzprüfungen möglich.</p>';
                     volSection.innerHTML = `
-                    <section class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+                    <section class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                         <div class="px-6 py-4 bg-slate-50/80 border-b border-slate-200 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1">
                             <h3 class="text-base font-bold flex flex-wrap items-center gap-2">
                                 <span class="w-2 h-2 rounded-full bg-violet-500"></span>
