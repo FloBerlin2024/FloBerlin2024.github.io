@@ -409,6 +409,23 @@
         @media (prefers-reduced-motion: reduce) {
             #regelwerkPanel .chevron { transition: none; }
         }
+
+        /* ---------- Schwebende Undo/Redo/Reset-Leiste ----------
+           Sie weicht auf dem Smartphone zurueck, wenn sie stoeren wuerde (Blaettern nach
+           unten, offene Tastatur) -- gesteuert von initUndoLeiste() in ui/actions.js.
+           Der explizite transform behaelt die horizontale Zentrierung (-50%) bei und legt
+           die Verschiebung nach unten darauf; Tailwinds -translate-x-1/2 allein koennte das
+           nicht, weil beide Achsen in EINER transform-Eigenschaft stehen. */
+        #undoBar { transition: opacity .2s ease, transform .2s ease; }
+        #undoBar.leiste-weg {
+            opacity: 0;
+            pointer-events: none;
+            transform: translate(-50%, 1.5rem);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            #undoBar { transition: none; }
+        }
     </style>
 </head>
 
@@ -439,15 +456,10 @@
     <!-- UNDO/REDO/RESET: schwebende Knöpfe, jeder nur sichtbar wenn nutzbar.
          Links: Reset (weiß, alles verwerfen) · Mitte: Undo (orange, Schritt zurück) · rechts: Redo (orange, Schritt vor)
 
-         Ab Tablet (sm:) unten mittig wie bisher. Auf dem Smartphone WANDERN SIE NACH OBEN:
-         Unten steigt die Bildschirmtastatur hoch und verdeckt sie, genau während man Noten
-         eintippt. Editoren mit mehrstufiger Historie (Docs, Word, Notion) setzen Undo/Redo aus
-         demselben Grund nach oben; die Snackbar-Variante unten passt nur zu einmaligen Aktionen.
-         Rechts statt mittig und erst ab 80px Höhe, weil oben schon zwei Dinge liegen:
-         der Einklapp-Pfeil der Sidebar (rechts, y 16-56) und die Hinweis-Toasts (mittig ab y 16). -->
-    <div class="no-print fixed z-50 flex items-center gap-3
-                top-20 right-4
-                sm:top-auto sm:right-auto sm:bottom-5 sm:left-1/2 sm:-translate-x-1/2">
+         Unten mittig auf allen Größen. Auf dem Smartphone weicht die Leiste zusätzlich zurück,
+         wenn sie stören würde — beim Blättern nach unten und solange ein Eingabefeld den Fokus
+         hat (dort steht die Tastatur). Steuerung: initUndoLeiste() in ui/actions.js. -->
+    <div id="undoBar" class="no-print fixed bottom-5 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3">
         <button id="resetBtn" onclick="resetAll()" title="Alle Änderungen zurücksetzen"
             data-help="Alle Änderungen verwerfen und auf den Ausgangszustand zurücksetzen (mit Rückfrage)"
             class="hidden h-12 px-5 rounded-full bg-white hover:bg-orange-50 text-orange-500 border border-orange-300 font-extrabold text-sm shadow-xl flex items-center justify-center transition-colors hover:scale-105">
@@ -765,7 +777,14 @@
                     </button>
                 </div>
                 <div class="p-6 overflow-y-auto custom-scrollbar space-y-4 text-sm text-slate-600 leading-relaxed">
-                    <p class="text-xs text-slate-400">Kurzfassung der Änderungen. Aktuelle Version: <span class="font-bold text-slate-600">v2.1.9</span>.</p>
+                    <p class="text-xs text-slate-400">Kurzfassung der Änderungen. Aktuelle Version: <span class="font-bold text-slate-600">v2.1.10</span>.</p>
+                    <div>
+                        <div class="flex items-baseline gap-2"><span class="font-extrabold text-indigo-700">v2.1.10</span><span class="text-xs font-bold text-slate-400">24.08.2026</span></div>
+                        <ul class="list-disc pl-5 mt-1 space-y-0.5">
+                            <li><b>Reset, Undo und Redo sitzen auf dem Smartphone wieder unten</b> – aber sie gehen aus dem Weg: Beim Blättern nach unten ziehen sie sich zurück, beim Wischen nach oben sind sie wieder da. Solange ein Notenfeld angetippt ist, verschwinden sie ganz, denn dort steht die Tastatur.</li>
+                            <li>Auf Tablet und Rechner bleiben sie unverändert immer sichtbar.</li>
+                        </ul>
+                    </div>
                     <div>
                         <div class="flex items-baseline gap-2"><span class="font-extrabold text-indigo-700">v2.1.9</span><span class="text-xs font-bold text-slate-400">24.08.2026</span></div>
                         <ul class="list-disc pl-5 mt-1 space-y-0.5">
@@ -1005,7 +1024,7 @@
                             </svg>
                         </button>
                     </h1>
-                    <p class="text-xs text-slate-400 mt-2 uppercase tracking-widest font-bold">Sek I <button onclick="openChangelog()" class="text-slate-300 normal-case tracking-normal font-semibold hover:text-indigo-600 cursor-pointer underline decoration-dotted underline-offset-2 transition-colors" title="Was ist neu? Changelog &amp; Kontakt">· v2.1.9</button></p>
+                    <p class="text-xs text-slate-400 mt-2 uppercase tracking-widest font-bold">Sek I <button onclick="openChangelog()" class="text-slate-300 normal-case tracking-normal font-semibold hover:text-indigo-600 cursor-pointer underline decoration-dotted underline-offset-2 transition-colors" title="Was ist neu? Changelog &amp; Kontakt">· v2.1.10</button></p>
                     <p id="metaDisplay" class="mt-1 text-sm font-bold text-indigo-900"></p>
                     <!-- Stufen-Indikator (nur Arbeitskopie; von stages.js gefüllt) -->
                     <div id="stageIndicator" class="hidden mt-2"></div>
@@ -3297,6 +3316,66 @@
                 }
             }
         };
+
+        // --- Schwebende Undo-Leiste auf dem Smartphone ---------------------------------------
+        // Sie liegt unten mittig -- da, wo der Daumen hinkommt, aber auch da, wo die
+        // Bildschirmtastatur hochsteigt und wo sie beim Blättern über der Notentabelle liegt.
+        // Zwei Anlässe, sie zurückzuziehen, beide NUR unter 640 px:
+        //
+        //   * Beim Blättern nach unten weicht sie zurück, beim Blättern nach oben kommt sie
+        //     wieder -- das Muster jeder Nachrichten-App. Wer liest oder tippt, blättert nach
+        //     unten; wer korrigieren will, wischt ein Stück hoch. Kostet keinen zusätzlichen
+        //     Tipper, anders als ein aufklappbarer Stapel.
+        //   * Solange ein Eingabefeld den Fokus hat, ist sie ganz weg. Genau dann steht die
+        //     Tastatur davor. Der Fokus ist dafür das verlässliche Signal -- verlässlicher als
+        //     die Höhe des visuellen Viewports, die je nach Gerät und Browser unterschiedlich
+        //     schrumpft (und die sich nicht automatisiert prüfen lässt).
+        const initUndoLeiste = () => {
+            const leiste = document.getElementById('undoBar');
+            if (!leiste) return;
+            const schmal = window.matchMedia('(max-width: 640px)');
+            // Gescrollt wird der <main>-Bereich, nicht das Fenster (s. overflow-y-auto im Gerüst).
+            const scroller = document.querySelector('main') || document.scrollingElement;
+            let letzterStand = 0;
+            let verborgen = false;
+            // Die beiden Anlässe werden GETRENNT gehalten und erst am Ende verodert. Wer sie
+            // vermischt, baut sich eine Falle: Endet das Tippen, ohne dass sich der Scrollstand
+            // ändert, greift die Zitter-Schwelle unten und die Leiste käme nie wieder.
+            let scrollWeg = false;
+
+            // Zustand live aus dem Dokument lesen statt mitzuführen: Beim Sprung von Feld zu Feld
+            // (Eingabetaste) feuert focusout VOR dem focusin des Ziels -- ein mitgeführtes Flag
+            // würde die Leiste dazwischen kurz aufblitzen lassen.
+            const tipptGerade = () => {
+                const a = document.activeElement;
+                return !!(a && a.matches && a.matches('input, textarea, select'));
+            };
+            const setzen = (weg) => {
+                if (weg === verborgen) return;
+                verborgen = weg;
+                leiste.classList.toggle('leiste-weg', weg);
+            };
+            // Ab Tablet immer sichtbar; darunter weg, sobald einer der beiden Anlässe zutrifft.
+            const anwenden = () => setzen(schmal.matches && (tipptGerade() || scrollWeg));
+
+            const beimBlaettern = () => {
+                if (!schmal.matches) { anwenden(); return; }
+                const y = scroller.scrollTop;
+                if (y < 40) { letzterStand = y; scrollWeg = false; anwenden(); return; }  // oben immer da
+                const delta = y - letzterStand;
+                if (Math.abs(delta) < 8) return;                       // Zittern ignorieren
+                letzterStand = y;
+                scrollWeg = delta > 0;                                 // runter = weg, hoch = da
+                anwenden();
+            };
+
+            scroller.addEventListener('scroll', beimBlaettern, { passive: true });
+            if (schmal.addEventListener) schmal.addEventListener('change', anwenden);
+            document.addEventListener('focusin', anwenden);
+            // focusout: erst im nächsten Tick prüfen, sonst ist activeElement noch das alte Feld.
+            document.addEventListener('focusout', () => setTimeout(anwenden, 0));
+        };
+        document.addEventListener('DOMContentLoaded', initUndoLeiste);
 
         // --- Von Feld zu Feld ohne Antippen -------------------------------------------------
         // Die Eingabetaste („Weiter" auf der Bildschirmtastatur, s. enterkeyhint) springt in das
