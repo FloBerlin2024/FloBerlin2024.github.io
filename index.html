@@ -456,9 +456,12 @@
         </button>
     </div>
 
-    <!-- HILFE-MODUS: schwebender Schalter, Legende, Hinweis-Tooltip -->
+    <!-- HILFE-MODUS: schwebender Schalter, Legende, Hinweis-Tooltip
+         Auf dem Smartphone ausgeblendet (hidden sm:flex): Der Knopf schwebt ueber dem Inhalt,
+         und dort ist der Platz zu knapp -- beim Tippen in der Notentabelle steht er im Weg,
+         und die Hilfe-Tooltips leben ohnehin vom Zeigen mit der Maus. -->
     <button id="helpToggle" onclick="toggleHelp()" title="Hilfe: bedienbare Felder anzeigen"
-        class="no-print fixed bottom-5 right-5 z-50 w-12 h-12 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white text-xl font-black shadow-lg flex items-center justify-center transition-colors">?</button>
+        class="no-print fixed bottom-5 right-5 z-50 w-12 h-12 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white text-xl font-black shadow-lg hidden sm:flex items-center justify-center transition-colors">?</button>
     <div id="helpLegend" class="hidden no-print fixed top-4 left-1/2 -translate-x-1/2 z-50 max-w-[92vw]">
         <div class="bg-white rounded-2xl shadow-xl border border-slate-200 px-4 py-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
             <span class="font-extrabold text-slate-800">Hilfe-Modus</span>
@@ -753,7 +756,14 @@
                     </button>
                 </div>
                 <div class="p-6 overflow-y-auto custom-scrollbar space-y-4 text-sm text-slate-600 leading-relaxed">
-                    <p class="text-xs text-slate-400">Kurzfassung der Änderungen. Aktuelle Version: <span class="font-bold text-slate-600">v2.1.7</span>.</p>
+                    <p class="text-xs text-slate-400">Kurzfassung der Änderungen. Aktuelle Version: <span class="font-bold text-slate-600">v2.1.8</span>.</p>
+                    <div>
+                        <div class="flex items-baseline gap-2"><span class="font-extrabold text-indigo-700">v2.1.8</span><span class="text-xs font-bold text-slate-400">24.08.2026</span></div>
+                        <ul class="list-disc pl-5 mt-1 space-y-0.5">
+                            <li><b>Mit der Eingabetaste geht es ins nächste Notenfeld</b> – auf der Bildschirmtastatur heißt sie „Weiter". Der Wert wird dabei festgeschrieben und der nächste Wert gleich markiert, sodass man ihn einfach übertippt. Im letzten Feld schließt sich die Tastatur. Eine ganze Klasse lässt sich damit erfassen, ohne ein einziges Mal zu zielen.</li>
+                            <li><b>Das schwebende Fragezeichen ist auf dem Smartphone ausgeblendet</b> – dort ist der Platz zu knapp, und es stand beim Tippen im Weg. Auf Tablet und Rechner bleibt es unverändert.</li>
+                        </ul>
+                    </div>
                     <div>
                         <div class="flex items-baseline gap-2"><span class="font-extrabold text-indigo-700">v2.1.7</span><span class="text-xs font-bold text-slate-400">24.08.2026</span></div>
                         <ul class="list-disc pl-5 mt-1 space-y-0.5">
@@ -980,7 +990,7 @@
                             </svg>
                         </button>
                     </h1>
-                    <p class="text-xs text-slate-400 mt-2 uppercase tracking-widest font-bold">Sek I <button onclick="openChangelog()" class="text-slate-300 normal-case tracking-normal font-semibold hover:text-indigo-600 cursor-pointer underline decoration-dotted underline-offset-2 transition-colors" title="Was ist neu? Changelog &amp; Kontakt">· v2.1.7</button></p>
+                    <p class="text-xs text-slate-400 mt-2 uppercase tracking-widest font-bold">Sek I <button onclick="openChangelog()" class="text-slate-300 normal-case tracking-normal font-semibold hover:text-indigo-600 cursor-pointer underline decoration-dotted underline-offset-2 transition-colors" title="Was ist neu? Changelog &amp; Kontakt">· v2.1.8</button></p>
                     <p id="metaDisplay" class="mt-1 text-sm font-bold text-indigo-900"></p>
                     <!-- Stufen-Indikator (nur Arbeitskopie; von stages.js gefüllt) -->
                     <div id="stageIndicator" class="hidden mt-2"></div>
@@ -2647,7 +2657,7 @@
             // --- Prüfungs-Eingabe pro Fach: aufklappbare Zusatzzeile (nur wenn exam.js gebaut) ---
             const examPtsInput = (id, value, handler) => `
                 <input type="text" id="${id}" value="${value !== null && value !== undefined ? value : ''}"
-                       placeholder="Pkt" aria-label="Prüfungspunkte 0 bis 15" onfocus="this.select()" onmouseup="return false" inputmode="decimal" enterkeyhint="next" autocomplete="off" autocorrect="off" spellcheck="false" onchange="${handler}"
+                       placeholder="Pkt" aria-label="Prüfungspunkte 0 bis 15" onfocus="this.select()" onmouseup="return false" onkeydown="gradeFieldEnter(this, event)" inputmode="decimal" enterkeyhint="next" autocomplete="off" autocorrect="off" spellcheck="false" onchange="${handler}"
                        data-help="Prüfungspunkte 0–15 eingeben (leer = noch nicht geprüft)"
                        class="grade-input w-16 text-center font-mono py-1 rounded-lg bg-slate-50 border border-slate-200 text-sm" />`;
 
@@ -2756,7 +2766,7 @@
                                aria-label="${subjectDisplayLabel(data)} – ${istRegelwerkNeu() ? 'Note 1 bis 6' : 'Punkte 0 bis 15'}"
                                placeholder="O.B."
                                onchange="updatePts('${key}', this.value)"
-                               onfocus="this.select()" onmouseup="return false" inputmode="decimal" enterkeyhint="next" autocomplete="off" autocorrect="off" spellcheck="false"
+                               onfocus="this.select()" onmouseup="return false" onkeydown="gradeFieldEnter(this, event)" inputmode="decimal" enterkeyhint="next" autocomplete="off" autocorrect="off" spellcheck="false"
                                data-help="${eingabeHilfe}"
                                title="${kunstGesperrt ? 'Note aus Klasse 9, unveränderbar' : ''}"
                                ${feldGesperrt ? 'readonly' : ''}
@@ -3003,7 +3013,7 @@
                             <select onchange="updateVoluntarySubject(${idx}, this.value)" id="exam-vol-subject-${idx}" data-help="Fach für die freiwillige Zusatzprüfung wählen" class="px-3 py-2 text-sm rounded-lg border border-slate-300 bg-white font-semibold">${options}</select>
                             <label class="flex items-center gap-2">
                                 <span class="text-xs font-semibold text-slate-600">Mündlich</span>
-                                <input type="text" id="exam-vol-pts-${idx}" value="${v.pts !== null ? v.pts : ''}" placeholder="Pkt" aria-label="Prüfungspunkte 0 bis 15" onfocus="this.select()" onmouseup="return false" inputmode="decimal" enterkeyhint="next" autocomplete="off" autocorrect="off" spellcheck="false" onchange="updateVoluntaryPts(${idx}, this.value)" data-help="Prüfungspunkte 0–15 eingeben" class="grade-input w-16 text-center font-mono py-1 rounded-lg bg-white border border-slate-300 text-sm" />
+                                <input type="text" id="exam-vol-pts-${idx}" value="${v.pts !== null ? v.pts : ''}" placeholder="Pkt" aria-label="Prüfungspunkte 0 bis 15" onfocus="this.select()" onmouseup="return false" onkeydown="gradeFieldEnter(this, event)" inputmode="decimal" enterkeyhint="next" autocomplete="off" autocorrect="off" spellcheck="false" onchange="updateVoluntaryPts(${idx}, this.value)" data-help="Prüfungspunkte 0–15 eingeben" class="grade-input w-16 text-center font-mono py-1 rounded-lg bg-white border border-slate-300 text-sm" />
                             </label>
                             <span class="text-sm text-slate-500">Endnote: ${preview}</span>
                             <button onclick="removeVoluntaryExam(${idx})" title="Zusatzprüfung entfernen" data-help="Diese Zusatzprüfung entfernen" class="ml-auto p-1.5 rounded-lg text-red-500 hover:bg-red-50 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>
@@ -3271,6 +3281,39 @@
                     panel.open = !regelwerkFest;
                 }
             }
+        };
+
+        // --- Von Feld zu Feld ohne Antippen -------------------------------------------------
+        // Die Eingabetaste („Weiter" auf der Bildschirmtastatur, s. enterkeyhint) springt in das
+        // naechste Notenfeld, statt die Tastatur zu schliessen. Erst damit laesst sich eine ganze
+        // Klasse fluessig erfassen.
+        //
+        // Zwei Fallstricke, die den naiven Weg (einfach next.focus()) scheitern lassen:
+        //   1. Das Festschreiben des Wertes rendert die Ansicht NEU -- das Zielelement aus dem
+        //      Moment davor haengt danach nicht mehr im Dokument. Deshalb wird nur die ID
+        //      gemerkt und das Element hinterher frisch geholt.
+        //   2. Die change-Handler setzen selbst `lastFocusedId` auf das GERADE verlassene Feld,
+        //      der Render stellt den Fokus also dorthin zurueck. Der eigene Fokus-Aufruf danach
+        //      ist deshalb nicht Zierde, sondern notwendig.
+        const eingabefelder = () => [...document.querySelectorAll('.grade-input')]
+            .filter(f => !f.readOnly && !f.disabled && f.offsetParent !== null);
+
+        window.gradeFieldEnter = (el, ev) => {
+            if (!ev || ev.key !== 'Enter') return;
+            ev.preventDefault();
+            const felder = eingabefelder();
+            const i = felder.indexOf(el);
+            const ziel = i >= 0 ? felder[i + 1] : null;
+            // Im letzten Feld: Wert festschreiben und die Tastatur schliessen.
+            const zielId = ziel ? ziel.id : el.id;
+            el.dispatchEvent(new Event('change', { bubbles: true }));
+            const nach = document.getElementById(zielId);
+            if (!nach) return;
+            if (!ziel) { nach.blur(); return; }
+            nach.focus();
+            // Auswaehlen statt Cursor ans Ende: Der naechste Tastendruck soll den alten Wert
+            // ersetzen. Der Render setzt den Cursor sonst hinter den Wert.
+            if (nach.select) nach.select();
         };
 
         // Kurs-Level eines fachleistungsdifferenzierten Fachs umstellen (§ 33 Abs. 2).
