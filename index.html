@@ -739,7 +739,14 @@
                     </button>
                 </div>
                 <div class="p-6 overflow-y-auto custom-scrollbar space-y-4 text-sm text-slate-600 leading-relaxed">
-                    <p class="text-xs text-slate-400">Kurzfassung der Änderungen. Aktuelle Version: <span class="font-bold text-slate-600">v2.1.5</span>.</p>
+                    <p class="text-xs text-slate-400">Kurzfassung der Änderungen. Aktuelle Version: <span class="font-bold text-slate-600">v2.1.6</span>.</p>
+                    <div>
+                        <div class="flex items-baseline gap-2"><span class="font-extrabold text-indigo-700">v2.1.6</span><span class="text-xs font-bold text-slate-400">24.08.2026</span></div>
+                        <ul class="list-disc pl-5 mt-1 space-y-0.5">
+                            <li><b>Der gelbe Hinweis zur Zielpunktzahl erscheint nur noch, wenn wirklich ein Fach fehlt.</b> Bisher stand er in Klasse 10 dauerhaft – dort zählt Musik mit, deshalb liegen die Ziele planmäßig höher (FOR 90 statt 84, FOR-Q 120 statt 112). Das ist die Vorgabe des Landes und keine Abweichung; ein Hinweis, der einen ganzen Jahrgang lang steht, wird als Warnung gelesen.</li>
+                            <li><b>Und er sagt jetzt, worum es geht:</b> statt „Erforderliche Punktzahl wurde angepasst" heißt es „SP ist ohne Bewertung – die Zielpunktzahlen sind entsprechend abgesenkt (FOR: 84 → 78)." Der Vergleichswert richtet sich nach dem Jahrgang, in Klasse 10 also nach der 90.</li>
+                        </ul>
+                    </div>
                     <div>
                         <div class="flex items-baseline gap-2"><span class="font-extrabold text-indigo-700">v2.1.5</span><span class="text-xs font-bold text-slate-400">24.08.2026</span></div>
                         <ul class="list-disc pl-5 mt-1 space-y-0.5">
@@ -950,7 +957,7 @@
                             </svg>
                         </button>
                     </h1>
-                    <p class="text-xs text-slate-400 mt-2 uppercase tracking-widest font-bold">Sek I <button onclick="openChangelog()" class="text-slate-300 normal-case tracking-normal font-semibold hover:text-indigo-600 cursor-pointer underline decoration-dotted underline-offset-2 transition-colors" title="Was ist neu? Changelog &amp; Kontakt">· v2.1.5</button></p>
+                    <p class="text-xs text-slate-400 mt-2 uppercase tracking-widest font-bold">Sek I <button onclick="openChangelog()" class="text-slate-300 normal-case tracking-normal font-semibold hover:text-indigo-600 cursor-pointer underline decoration-dotted underline-offset-2 transition-colors" title="Was ist neu? Changelog &amp; Kontakt">· v2.1.6</button></p>
                     <p id="metaDisplay" class="mt-1 text-sm font-bold text-indigo-900"></p>
                     <!-- Stufen-Indikator (nur Arbeitskopie; von stages.js gefüllt) -->
                     <div id="stageIndicator" class="hidden mt-2"></div>
@@ -2001,9 +2008,27 @@
             const forqTargetTotal = 112 + (deltaFgi * 9) + (deltaFgii * 8);
             const forqTargetFg2 = 56 + (deltaFgii * 8);
 
-            const hasAdjustment = deltaFgi !== 0 || deltaFgii !== 0;
-            const adjustmentReason = hasAdjustment ?
-                `Hinweis: Erforderliche Punktzahl wurde aufgrund der Anzahl bewerteter Fächer angepasst.` : null;
+            // --- Hinweis zur angepassten Zielpunktzahl -------------------------------------
+            // Er erscheint NUR, wenn wirklich ein Fach fehlt. Frueher genuegte dafuer eine
+            // abweichende Fachzahl -- und damit stand er in Klasse 10 dauerhaft, weil Musik dort
+            // mitzaehlt und die Ziele planmaessig hoeher liegen (FOR-Q 120/64 statt 112/56, so die
+            // Vorgabe des Landes). Ein gelber Hinweis, der einen ganzen Jahrgang lang steht, wird
+            // als Warnung gelesen und uebersehen zugleich. Ausserdem deckte ein und derselbe Satz
+            // zwei entgegengesetzte Faelle ab: Ziele HOEHER (ein Fach mehr) und Ziele NIEDRIGER
+            // (ein Fach ohne Bewertung). Nur der zweite Fall ist ueberhaupt mitteilenswert.
+            const ohneBewertung = [...fgiRes, ...fgiiRes.filter(r => !r.isComponent)]
+                .filter(r => r.pts === null)
+                .map(r => subjectDisplayLabel(r).replace(' (Ø)', ''));
+            // Bezugswert ist die Zielpunktzahl, die in DIESEM Jahrgang ohne Luecken gaelte --
+            // in Klasse 10 also die 90, nicht die 84 der Klasse 9.
+            const planDeltaFgi = fgiKeys.length - 6;
+            const planDeltaFgii = (fgiiSumKeys.length + 1) - 7;      // + 1 fuer GEWI (Ø)
+            const forPlanTotal = 84 + (planDeltaFgi * 7) + (planDeltaFgii * 6);
+            const hasAdjustment = ohneBewertung.length > 0;
+            const adjustmentReason = hasAdjustment
+                ? `${ohneBewertung.join(', ')} ${ohneBewertung.length === 1 ? 'ist' : 'sind'} ohne Bewertung – `
+                  + `die Zielpunktzahlen sind entsprechend abgesenkt (FOR: ${forPlanTotal} → ${forTargetTotal}).`
+                : null;
 
             // --- EBR Check ---
             const ebrCoreOk = g.DE.pts === null || g.MA.pts === null || g.DE.pts >= 5 || g.MA.pts >= 5;
