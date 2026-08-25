@@ -87,6 +87,16 @@
             box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
         }
 
+        /* Zahlen, die nur ANGEZEIGT werden (Notenschnitt, Punkte-Summen in den Score-Cards,
+           Noten-/Prüfungs-Badges in der Tabelle): ohne diese Regel zeigt der Browser über
+           selektierbarem Text seinen Schreib-Cursor (I-Beam) -- das wirkt wie ein Eingabefeld,
+           ist aber keins. .grade-input bleibt unberührt: input[type=text] setzt seinen
+           Schreib-Cursor direkt am Element, das gewinnt unabhängig vom Elternelement. */
+        #scoreCards,
+        .grade-table td {
+            cursor: default;
+        }
+
         /* ---------- Mobile (Smartphones, z. B. Schüler-Kopie): Notentabellen kompakt,
            alle Spalten inkl. Note ohne Seitwärts-Scrollen sichtbar ---------- */
         @media (max-width: 640px) {
@@ -777,7 +787,13 @@
                     </button>
                 </div>
                 <div class="p-6 overflow-y-auto custom-scrollbar space-y-4 text-sm text-slate-600 leading-relaxed">
-                    <p class="text-xs text-slate-400">Kurzfassung der Änderungen. Aktuelle Version: <span class="font-bold text-slate-600">v2.1.10</span>.</p>
+                    <p class="text-xs text-slate-400">Kurzfassung der Änderungen. Aktuelle Version: <span class="font-bold text-slate-600">v2.1.11</span>.</p>
+                    <div>
+                        <div class="flex items-baseline gap-2"><span class="font-extrabold text-indigo-700">v2.1.11</span><span class="text-xs font-bold text-slate-400">25.08.2026</span></div>
+                        <ul class="list-disc pl-5 mt-1 space-y-0.5">
+                            <li><b>Mauszeiger korrigiert:</b> Über reinen Anzeige-Zahlen (Notenschnitt, Punkte-Summen, Noten-Badges) stand fälschlich der Schreib-Cursor, obwohl die Felder gar nicht editierbar sind. Jetzt zeigt dort der normale Zeiger – der Schreib-Cursor bleibt allein den Eingabefeldern vorbehalten.</li>
+                        </ul>
+                    </div>
                     <div>
                         <div class="flex items-baseline gap-2"><span class="font-extrabold text-indigo-700">v2.1.10</span><span class="text-xs font-bold text-slate-400">24.08.2026</span></div>
                         <ul class="list-disc pl-5 mt-1 space-y-0.5">
@@ -1024,7 +1040,7 @@
                             </svg>
                         </button>
                     </h1>
-                    <p class="text-xs text-slate-400 mt-2 uppercase tracking-widest font-bold">Sek I <button onclick="openChangelog()" class="text-slate-300 normal-case tracking-normal font-semibold hover:text-indigo-600 cursor-pointer underline decoration-dotted underline-offset-2 transition-colors" title="Was ist neu? Changelog &amp; Kontakt">· v2.1.10</button></p>
+                    <p class="text-xs text-slate-400 mt-2 uppercase tracking-widest font-bold">Sek I <button onclick="openChangelog()" class="text-slate-300 normal-case tracking-normal font-semibold hover:text-indigo-600 cursor-pointer underline decoration-dotted underline-offset-2 transition-colors" title="Was ist neu? Changelog &amp; Kontakt">· v2.1.11</button></p>
                     <p id="metaDisplay" class="mt-1 text-sm font-bold text-indigo-900"></p>
                     <!-- Stufen-Indikator (nur Arbeitskopie; von stages.js gefüllt) -->
                     <div id="stageIndicator" class="hidden mt-2"></div>
