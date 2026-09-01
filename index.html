@@ -794,7 +794,14 @@
                     </button>
                 </div>
                 <div class="p-6 overflow-y-auto custom-scrollbar space-y-4 text-sm text-slate-600 leading-relaxed">
-                    <p class="text-xs text-slate-400">Kurzfassung der Änderungen. Aktuelle Version: <span class="font-bold text-slate-600">v2.3.2</span>.</p>
+                    <p class="text-xs text-slate-400">Kurzfassung der Änderungen. Aktuelle Version: <span class="font-bold text-slate-600">v2.3.3</span>.</p>
+                    <div>
+                        <div class="flex items-baseline gap-2"><span class="font-extrabold text-indigo-700">v2.3.3</span><span class="text-xs font-bold text-slate-400">01.09.2026</span></div>
+                        <ul class="list-disc pl-5 mt-1 space-y-0.5">
+                            <li>Der Knopf heißt jetzt <b>in beiden Ansichten „Drucken / PDF"</b> und ist überall gleich groß. In der Lehrkraft-Ansicht öffnet er weiterhin das Menü mit „Alle Schüler" und den Kopien.</li>
+                            <li>Auf schmalen Bildschirmen stehen „Klasse" und „Drucken / PDF" jetzt <b>untereinander</b> statt nebeneinander – nebeneinander war die Beschriftung zweizeilig umgebrochen.</li>
+                        </ul>
+                    </div>
                     <div>
                         <div class="flex items-baseline gap-2"><span class="font-extrabold text-indigo-700">v2.3.2</span><span class="text-xs font-bold text-slate-400">01.09.2026</span></div>
                         <ul class="list-disc pl-5 mt-1 space-y-0.5">
@@ -1076,7 +1083,7 @@
                             </svg>
                         </button>
                     </h1>
-                    <p class="text-xs text-slate-400 mt-2 uppercase tracking-widest font-bold">Sek I <button onclick="openChangelog()" class="text-slate-300 normal-case tracking-normal font-semibold hover:text-indigo-600 cursor-pointer underline decoration-dotted underline-offset-2 transition-colors" title="Was ist neu? Changelog &amp; Kontakt">· v2.3.2</button></p>
+                    <p class="text-xs text-slate-400 mt-2 uppercase tracking-widest font-bold">Sek I <button onclick="openChangelog()" class="text-slate-300 normal-case tracking-normal font-semibold hover:text-indigo-600 cursor-pointer underline decoration-dotted underline-offset-2 transition-colors" title="Was ist neu? Changelog &amp; Kontakt">· v2.3.3</button></p>
                     <p id="metaDisplay" class="mt-1 text-sm font-bold text-indigo-900"></p>
                     <!-- Stufen-Indikator (nur Arbeitskopie; von stages.js gefüllt) -->
                     <div id="stageIndicator" class="hidden mt-2"></div>
@@ -2693,10 +2700,6 @@
             return 'text-2xl sm:text-3xl';
         };
 
-        // Inhalt des Namens-Badges im Dashboard-Kopf: im Schüler-Modus ein Personen-Symbol statt
-        // des Anfangsbuchstabens -- der Name ist zu Beginn leer, ein Buchstabe faellt dort weg,
-        // und ein Symbol passt besser zu "genau eine Person benutzt diesen Rechner". Dasselbe
-        // Icon wie beim Drucken ("DIESEN SCHÜLER"), damit es im Vokabular der App bleibt.
         // Bemerkungsfeld im AUSDRUCK (alle drei Berichtsvorlagen). Im Schüler-Modus entfällt es --
         // dort wird nichts eingetragen (das Eingabefeld ist ausgeblendet), eine leere Box mit
         // „Keine Anmerkungen" wäre auf dem eigenen Ausdruck nur Ballast.
@@ -2729,7 +2732,7 @@
                     <div class="relative flex-1 xl:flex-none flex">
                         <button onclick="togglePrintDropdown()" data-help="Drucken / als PDF speichern" class="${DRUCK_KNOPF_CLS}" title="Drucken / PDF speichern">
                             ${DRUCK_SVG}
-                            <span>Drucken</span>
+                            <span>Drucken / PDF</span>
                         </button>
                         <div id="printDropdown" class="hidden absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-2xl border border-slate-100 z-[100] overflow-hidden">
                             <button onclick="printReport()" class="w-full text-left px-5 py-4 text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors flex items-center gap-3 border-b border-slate-50">
@@ -2753,6 +2756,10 @@
                     </div>`;
         };
 
+        // Inhalt des Namens-Badges im Dashboard-Kopf: im Schüler-Modus ein Personen-Symbol statt
+        // des Anfangsbuchstabens -- der Name ist zu Beginn leer, ein Buchstabe faellt dort weg,
+        // und ein Symbol passt besser zu "genau eine Person benutzt diesen Rechner". Dasselbe
+        // Icon wie beim Drucken ("DIESEN SCHÜLER"), damit es im Vokabular der App bleibt.
         const avatarInner = (name) => istSchuelerModus()
             ? '<svg class="w-7 h-7 sm:w-10 sm:h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>'
             : name.substring(0, 1);
@@ -2835,7 +2842,7 @@
 
                 <!-- Buttons: bis xl volle Breite unter dem Namen (immer mit Text), ab xl kompakt rechts daneben
                      (xl = derselbe Breakpoint, an dem die Abschluss-Karten neben den Inhalt rücken) -->
-                <div class="flex items-stretch gap-3 w-full xl:w-auto">
+                <div class="flex flex-col sm:flex-row items-stretch gap-3 w-full xl:w-auto">
                     ${(window.STUDENT_EXPORT_MODE || istSchuelerModus()) ? '' : `
                     <button onclick="toggleClassView()" data-help="Zwischen Einzel- und Klassenansicht wechseln" class="flex-1 xl:flex-none flex bg-white hover:bg-slate-50 text-indigo-600 font-extrabold py-3 px-3 xl:px-5 rounded-xl shadow-sm border border-indigo-100 items-center justify-center gap-2 transition-all hover:scale-105" title="Klassenansicht öffnen">
                         <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
