@@ -794,7 +794,16 @@
                     </button>
                 </div>
                 <div class="p-6 overflow-y-auto custom-scrollbar space-y-4 text-sm text-slate-600 leading-relaxed">
-                    <p class="text-xs text-slate-400">Kurzfassung der Änderungen. Aktuelle Version: <span class="font-bold text-slate-600">v2.2.0</span>.</p>
+                    <p class="text-xs text-slate-400">Kurzfassung der Änderungen. Aktuelle Version: <span class="font-bold text-slate-600">v2.3.0</span>.</p>
+                    <div>
+                        <div class="flex items-baseline gap-2"><span class="font-extrabold text-indigo-700">v2.3.0</span><span class="text-xs font-bold text-slate-400">01.09.2026</span></div>
+                        <ul class="list-disc pl-5 mt-1 space-y-0.5">
+                            <li><b>Der Moduswechsel sitzt jetzt in der Karte „Jahrgang &amp; Rechtsstand"</b> – als Schalter „Ansicht: Schüler | Lehrkraft" direkt unter dem Rechtsstand. Damit steht alles, was Anzeige und Berechnung bestimmt, an einer Stelle statt an dreien.</li>
+                            <li><b>Suche und Sortierung der Schülerliste sind entfallen</b> – die Liste ist alphabetisch sortiert.</li>
+                            <li>Im Schüler-Modus verschwindet die Seitenleiste ganz: Es gibt dort nur einen Schüler, und der steht bereits oben. Das schafft auf dem Smartphone spürbar Platz.</li>
+                            <li><b>Schutz vor Datenverlust:</b> Der Wechsel weg von der Lehrkraft-Ansicht fragt nach, sobald echte oder geänderte Schülerdaten geladen sind – die liegen nur im Arbeitsspeicher.</li>
+                        </ul>
+                    </div>
                     <div>
                         <div class="flex items-baseline gap-2"><span class="font-extrabold text-indigo-700">v2.2.0</span><span class="text-xs font-bold text-slate-400">31.08.2026</span></div>
                         <ul class="list-disc pl-5 mt-1 space-y-0.5">
@@ -1055,7 +1064,7 @@
                             </svg>
                         </button>
                     </h1>
-                    <p class="text-xs text-slate-400 mt-2 uppercase tracking-widest font-bold">Sek I <button onclick="openChangelog()" class="text-slate-300 normal-case tracking-normal font-semibold hover:text-indigo-600 cursor-pointer underline decoration-dotted underline-offset-2 transition-colors" title="Was ist neu? Changelog &amp; Kontakt">· v2.2.0</button></p>
+                    <p class="text-xs text-slate-400 mt-2 uppercase tracking-widest font-bold">Sek I <button onclick="openChangelog()" class="text-slate-300 normal-case tracking-normal font-semibold hover:text-indigo-600 cursor-pointer underline decoration-dotted underline-offset-2 transition-colors" title="Was ist neu? Changelog &amp; Kontakt">· v2.3.0</button></p>
                     <p id="metaDisplay" class="mt-1 text-sm font-bold text-indigo-900"></p>
                     <!-- Stufen-Indikator (nur Arbeitskopie; von stages.js gefüllt) -->
                     <div id="stageIndicator" class="hidden mt-2"></div>
@@ -1156,24 +1165,27 @@
                       </select>
                   </div>
 
+                  <!-- Ansicht: Schueler/Eltern oder Lehrkraft. Steht bewusst HIER und nirgends sonst --
+                       die Karte ist der eine Ort, an dem eingestellt wird, wonach gerechnet und was
+                       angezeigt wird. Gleiches Segment-Muster wie Jahrgang/Rechtsstand darueber
+                       (role=radiogroup, 44px Hoehe, Pfeiltasten via bindSegTasten). -->
+                  <div>
+                      <span id="modusLabel" class="block text-[11px] font-black uppercase tracking-widest text-slate-400 mb-1">Ansicht</span>
+                      <div id="modusSegs" role="radiogroup" aria-labelledby="modusLabel"
+                          class="grid grid-cols-2 gap-1 rounded-xl bg-slate-100 p-1">
+                          <button id="btnModusSchueler" role="radio" onclick="setModus('schueler')"
+                              data-help="Vereinfachte Ansicht: nur die eigenen Noten, ohne Import und Schülerverwaltung. Eingaben bleiben auf diesem Gerät gespeichert.">Schüler</button>
+                          <button id="btnModusLehrer" role="radio" onclick="setModus('lehrer')"
+                              data-help="Voller Funktionsumfang: mehrere Schüler, Excel-Import, Klassenansicht">Lehrkraft</button>
+                      </div>
+                  </div>
+
                   </div>
               </details>
             </div>
 
             <div id="sidebarContent"
                 class="hidden flex-col overflow-hidden max-h-[80vh] lg:max-h-none lg:h-full lg:flex">
-                <!-- Suche + Sortierung: im Schüler-Modus ausgeblendet (renderSidebar) -- es gibt dort
-                     immer nur genau einen Schüler, Suche/Sortierung wären sinnlose Bedienelemente. -->
-                <div id="sidebarSuche" class="px-4 pt-4 pb-1 flex gap-2">
-                    <input id="studentSearch" type="text" placeholder="Schüler suchen…" oninput="onStudentSearch(this.value)" data-help="Schüler in der Liste suchen"
-                        class="flex-1 min-w-0 px-3 py-2 text-sm rounded-xl border border-slate-200 bg-slate-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none">
-                    <select id="studentSort" onchange="onStudentSort(this.value)" data-help="Schülerliste sortieren" title="Sortierung"
-                        class="px-2 py-2 text-xs font-bold rounded-xl border border-slate-200 bg-slate-50 focus:outline-none">
-                        <option value="name">A–Z</option>
-                        <option value="abschluss">Abschluss</option>
-                        <option value="points">Punkte</option>
-                    </select>
-                </div>
                 <div id="studentList" class="flex-1 overflow-y-auto p-4 space-y-2 custom-scrollbar">
                     <!-- Dynamisch befüllt -->
                 </div>
@@ -1200,13 +1212,6 @@
                                 d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M12 12V3m0 0L8 7m4-4l4 4" />
                         </svg>
                         LEISTUNGSSTAND IM FACH
-                    </button>
-
-                    <!-- Unauffälliger Wechsel-Link: gilt für beide Richtungen (Schüler<->Lehrkraft),
-                         kein Bestätigungsdialog -- wechsleModus() verwirft keine Daten, siehe overlays.js. -->
-                    <button id="modusWechselBtn" onclick="wechsleModus()" data-help="Zwischen Schüler/Eltern- und Lehrkraft-Ansicht wechseln"
-                        class="w-full py-1.5 text-[11px] font-semibold text-slate-400 hover:text-indigo-600 transition-colors">
-                        Anderer Modus
                     </button>
                 </div>
             </div>
@@ -1706,8 +1711,6 @@
         };
 
         // Anzeige-Status (nur UI, verändert die Schülerdaten nicht)
-        let studentSearch = '';      // Filtertext Schülerliste
-        let studentSort = 'name';    // 'name' | 'abschluss' | 'points'
         let classSearch = '';        // Filtertext Klassenansicht
         let classSort = null;        // Sortierkriterium Klassenansicht: 'forq'|'for'|'ebr'|'none'|'up'|'down'|null
         let displayedIds = [];       // aktuell angezeigte Schüler-IDs (für Tastatur ↑/↓)
@@ -2621,62 +2624,35 @@
             EBR: { cls: 'bg-amber-100 text-amber-700', label: 'EBR' }
         };
 
-        // Punkte-/Abschluss-Sortierung macht nur bei Sek-I-Punkte-Stufen (Klasse 9/10, Produktiv)
-        // Sinn -- Klasse 7/8 vergeben Noten (1-6), Klasse 11 hat einen anderen Fächerkanon:
-        // calculateResults() liefe dort auf falscher Datenbasis (bzw. stürzte ab).
-        const notenspiegelActive = () => {
-            const cfg = typeof getStageConfig === 'function' ? getStageConfig() : null;
-            return !!(cfg && cfg.kind !== 'sek1');
-        };
-
         function renderSidebar() {
             if (typeof refreshRegelwerkPanel === 'function') refreshRegelwerkPanel();
-            // Schüler-Modus: keine Verwaltung -- Suche/Sortierung (immer nur ein Schüler), Import
-            // und "Neuer Schüler" verschwinden. Statisches Markup (keine Template-Strings), deshalb
-            // hier per classList statt bedingter Ausgabe.
+            // Schüler-Modus: keine Verwaltung -- Import und "Neuer Schüler" verschwinden. Statisches
+            // Markup (keine Template-Strings), deshalb hier per classList statt bedingter Ausgabe.
+            // Der Moduswechsel selbst sitzt in der Regelwerk-Karte darüber (#modusSegs) und wird
+            // hier NICHT wiederholt -- ein Ort je Einstellung.
             const schuelerModus = istSchuelerModus();
-            ['sidebarSuche', 'addStudentBtn', 'excelImportBtn'].forEach(id => {
+            ['addStudentBtn', 'excelImportBtn'].forEach(id => {
                 const el = document.getElementById(id);
                 if (el) el.classList.toggle('hidden', schuelerModus);
             });
-            // Der kleine Fußzeilen-Link bleibt der EINE Weg im Lehrer-Modus (dort ist die Liste
-            // echt belegt, kein Platz für mehr); im Schüler-Modus übernimmt die groß angezeigte
-            // Variante unten in #studentList -- zwei "Modus wechseln" nebeneinander wären doppelt.
-            const wechselFuss = document.getElementById('modusWechselBtn');
-            if (wechselFuss) wechselFuss.classList.toggle('hidden', schuelerModus);
+            // Im Schüler-Modus gibt es nur den einen Schüler, und der steht bereits im
+            // Dashboard-Kopf. Die ganze Liste samt Umschalter entfällt -- das spart auf dem
+            // Smartphone den Platz, den die Seitenleiste sonst über dem Rechner belegt.
+            const sidebar = document.getElementById('sidebarContent');
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            if (sidebar) {
+                // 'flex'/'hidden' setzt auch toggleMobileSidebar() -- beim Wechsel in den
+                // Schüler-Modus muss ein von Hand aufgeklappter Zustand mit zurückgenommen werden.
+                sidebar.classList.toggle('lg:flex', !schuelerModus);
+                if (schuelerModus) { sidebar.classList.add('hidden'); sidebar.classList.remove('flex'); }
+            }
+            if (sidebarToggle) sidebarToggle.classList.toggle('hidden', schuelerModus);
             const list = document.getElementById('studentList');
+            if (schuelerModus) { list.innerHTML = ''; displayedIds = []; return; }
 
-            // Schüler-Modus: keine Liste (es gibt nur den einen Schüler, der bereits im
-            // Dashboard-Kopf steht) -- stattdessen mittig und groß der Moduswechsel, im Design der
-            // App (gleiche Karten-Optik wie die Jahrgangs-Kacheln im Stufen-Startbildschirm).
-            if (schuelerModus) {
-                list.innerHTML = `
-                    <div class="h-full flex flex-col items-center justify-center gap-3 px-2 text-center">
-                        <button onclick="wechsleModus()" data-help="Zwischen Schüler/Eltern- und Lehrkraft-Ansicht wechseln"
-                            class="flex flex-col items-center gap-2.5 px-8 py-6 rounded-2xl border-2 border-slate-200 hover:border-indigo-400 hover:bg-indigo-50/50 transition-all">
-                            <svg class="w-8 h-8 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 3l4 4-4 4M20 7H8a4 4 0 00-4 4v1m4 9l-4-4 4-4m-4 4h12a4 4 0 004-4v-1"/></svg>
-                            <span class="font-extrabold text-slate-700">Modus wechseln</span>
-                        </button>
-                    </div>`;
-                return;
-            }
-
-            // Anzeigeliste: filtern (Suche) + sortieren – ohne students selbst zu verändern
-            let display = students.filter(s => s.name.toLowerCase().includes(studentSearch));
-            if (studentSort === 'points' && !notenspiegelActive()) {
-                display = [...display].sort((a, b) => getResults(b).stats.sortScore - getResults(a).stats.sortScore);
-            } else if (studentSort === 'abschluss' && !notenspiegelActive()) {
-                const rank = { FORQ: 3, FOR: 2, EBR: 1 };
-                display = [...display].sort((a, b) => (rank[studentTopAbschluss(b)] || 0) - (rank[studentTopAbschluss(a)] || 0));
-            } else {
-                display = [...display].sort((a, b) => a.name.localeCompare(b.name, 'de'));
-            }
+            // Anzeigeliste sortieren – ohne students selbst zu verändern
+            const display = [...students].sort((a, b) => a.name.localeCompare(b.name, 'de'));
             displayedIds = display.map(s => s.id);   // für Tastatur ↑/↓
-
-            if (display.length === 0) {
-                list.innerHTML = '<div class="text-center text-sm text-slate-400 py-8">Keine Treffer</div>';
-                return;
-            }
 
             list.innerHTML = display.map(s => {
                 const active = activeStudentId === s.id;
@@ -2694,10 +2670,6 @@
             </div>`;
             }).join('');
         }
-
-        // Such-/Sortier-Handler (Eingabefelder liegen außerhalb von #studentList -> Fokus bleibt erhalten)
-        window.onStudentSearch = (v) => { studentSearch = v.toLowerCase(); renderSidebar(); };
-        window.onStudentSort = (v) => { studentSort = v; renderSidebar(); };
 
         // Schriftgröße des Namens im Dashboard-Kopf: lange Namen stufenweise verkleinern,
         // damit sie im (nicht umbrechenden) Eingabefeld vollständig lesbar bleiben.
@@ -3369,7 +3341,7 @@
                 ziel.click();     // setKlassenstufe/setRuleset rendern neu, das Markup bleibt
                 ziel.focus();     // stehen -- der Fokus wird danach wieder gesetzt
             };
-            ['jahrgangSegs', 'rulesetSegs'].forEach(id => {
+            ['jahrgangSegs', 'rulesetSegs', 'modusSegs'].forEach(id => {
                 const g = document.getElementById(id);
                 if (g) g.addEventListener('keydown', handler);
             });
@@ -3408,6 +3380,10 @@
             };
 
             ['7', '8', '9', '10'].forEach(j => setBtn('btnKlasse' + j, klassenstufe === j));
+
+            // Ansicht (Schueler/Lehrkraft) -- gleicher Schalter-Stil wie Jahrgang/Rechtsstand.
+            setBtn('btnModusSchueler', istSchuelerModus());
+            setBtn('btnModusLehrer', appModus === 'lehrer');
 
             // In Klasse 7/8 ist das alte Recht nicht mehr anwendbar (§ 59 nennt nur Jg. 9/10).
             // Dort verschwindet die Wahl ganz und macht der Aussage im Klartext Platz.
@@ -3728,9 +3704,6 @@
 
                     activeStudentId = students[0].id;
                     lastFocusedId = null;
-                    studentSearch = '';
-                    const si = document.getElementById('studentSearch');
-                    if (si) si.value = '';
                     renderSidebar();
                     renderMainView();
                     snapshotBaseline();   // importierte Daten = neuer Ausgangszustand
@@ -3988,12 +3961,26 @@
             if (typeof initStages === 'function') initStages();
         };
 
-        // Escape Hatch: Moduswahl erneut zeigen, OHNE den aktuell geladenen Zustand zu verwerfen --
-        // chooseModus() laedt beim naechsten Klick frisch aus der fuer den Zielmodus richtigen
-        // Quelle (Schueler-Snapshot bzw. Beispielschueler), niemals aus dem, was gerade im Speicher
-        // steht (sonst koennten am selben Geraet geladene echte Schuelerdaten in eine Schueler-
-        // Ansicht durchsickern, die gerade einem Kind gezeigt wird).
-        window.wechsleModus = () => { appModus = null; openModeGate(); };
+        // Direkter Wechsel ueber den Segment-Schalter in der Regelwerk-Karte (der EINE Ort dafuer).
+        // Anders als der Moduswahl-Bildschirm beim ersten Start ist das ein einzelner Tipp -- und
+        // ein Wechsel laedt den Zielmodus IMMER frisch (chooseModus -> bootMitModus, s. o.). Wer im
+        // Lehrer-Modus gerade eine importierte Klasse bearbeitet, wuerde die Daten damit verlieren:
+        // sie liegen nur im Arbeitsspeicher (der Lehrer-Modus speichert bewusst nichts dauerhaft).
+        // Deshalb hier -- und nur hier -- eine Rueckfrage, sobald echte Daten im Spiel sind.
+        window.setModus = (modus) => {
+            if (modus !== 'schueler' && modus !== 'lehrer') return;
+            if (modus === appModus) return;
+            const echteDaten = appModus === 'lehrer'
+                && students.length && (!students.every(s => s.isExample) || isDirty());
+            if (echteDaten && !confirm(
+                'Zur Schüler-Ansicht wechseln?\n\nDie hier geladenen Schülerdaten werden dabei '
+                + 'verworfen – sie sind nicht gespeichert. Vorher ggf. drucken oder als '
+                + 'Schüler-Kopie sichern.')) {
+                refreshRegelwerkPanel();   // abgelehnt: Schalter zeigt wieder den echten Zustand
+                return;
+            }
+            chooseModus(modus);
+        };
 
         window.openChangelog = () => document.getElementById('changelogOverlay')?.classList.remove('hidden');
         window.closeChangelog = () => document.getElementById('changelogOverlay')?.classList.add('hidden');
