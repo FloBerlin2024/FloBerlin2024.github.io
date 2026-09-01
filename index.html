@@ -794,7 +794,13 @@
                     </button>
                 </div>
                 <div class="p-6 overflow-y-auto custom-scrollbar space-y-4 text-sm text-slate-600 leading-relaxed">
-                    <p class="text-xs text-slate-400">Kurzfassung der Änderungen. Aktuelle Version: <span class="font-bold text-slate-600">v2.3.1</span>.</p>
+                    <p class="text-xs text-slate-400">Kurzfassung der Änderungen. Aktuelle Version: <span class="font-bold text-slate-600">v2.3.2</span>.</p>
+                    <div>
+                        <div class="flex items-baseline gap-2"><span class="font-extrabold text-indigo-700">v2.3.2</span><span class="text-xs font-bold text-slate-400">01.09.2026</span></div>
+                        <ul class="list-disc pl-5 mt-1 space-y-0.5">
+                            <li>In der Schüler-Ansicht druckt der Knopf <b>direkt</b>, ohne Auswahlmenü – dort gibt es nur einen Schüler, das Menü hatte nur einen Eintrag. Er heißt jetzt <b>„Drucken / PDF"</b>; über den Druckdialog des Geräts lässt sich damit auch als PDF sichern.</li>
+                        </ul>
+                    </div>
                     <div>
                         <div class="flex items-baseline gap-2"><span class="font-extrabold text-indigo-700">v2.3.1</span><span class="text-xs font-bold text-slate-400">01.09.2026</span></div>
                         <ul class="list-disc pl-5 mt-1 space-y-0.5">
@@ -1070,7 +1076,7 @@
                             </svg>
                         </button>
                     </h1>
-                    <p class="text-xs text-slate-400 mt-2 uppercase tracking-widest font-bold">Sek I <button onclick="openChangelog()" class="text-slate-300 normal-case tracking-normal font-semibold hover:text-indigo-600 cursor-pointer underline decoration-dotted underline-offset-2 transition-colors" title="Was ist neu? Changelog &amp; Kontakt">· v2.3.1</button></p>
+                    <p class="text-xs text-slate-400 mt-2 uppercase tracking-widest font-bold">Sek I <button onclick="openChangelog()" class="text-slate-300 normal-case tracking-normal font-semibold hover:text-indigo-600 cursor-pointer underline decoration-dotted underline-offset-2 transition-colors" title="Was ist neu? Changelog &amp; Kontakt">· v2.3.2</button></p>
                     <p id="metaDisplay" class="mt-1 text-sm font-bold text-indigo-900"></p>
                     <!-- Stufen-Indikator (nur Arbeitskopie; von stages.js gefüllt) -->
                     <div id="stageIndicator" class="hidden mt-2"></div>
@@ -2702,6 +2708,51 @@
                         </div>
                     </section>`;
 
+        // Drucken-Knopf im Dashboard-Kopf, gemeinsam fuer alle drei Ansichten.
+        // Wo es nur EINEN Schueler gibt (Schueler-Modus und die exportierte Schueler-Kopie), bleibt
+        // im Ausklappmenue ohnehin nur "DIESEN SCHUELER" uebrig -- ein Menue mit einem Eintrag ist
+        // ein Umweg. Dort druckt der Knopf direkt und heisst "Drucken / PDF": Auf dem Telefon fuehrt
+        // derselbe Weg zum Sichern, "Als PDF sichern" steckt im Druckdialog des Geraets.
+        // mitKopien=false fuer Notenspiegel (Kl. 7/8) und Klasse 11 -- dort gibt es keine
+        // Schueler-Kopien zum Herunterladen, nur die beiden Druck-Eintraege.
+        const DRUCK_SVG = '<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>';
+        const DRUCK_KNOPF_CLS = 'w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-3 xl:px-5 rounded-xl shadow-lg flex items-center justify-center gap-2 transition';
+        const printBlock = (mitKopien) => {
+            if (window.STUDENT_EXPORT_MODE || istSchuelerModus()) return `
+                    <div class="flex-1 xl:flex-none flex">
+                        <button onclick="printReport()" data-help="Übersicht drucken oder als PDF sichern" title="Drucken / als PDF sichern" class="${DRUCK_KNOPF_CLS}">
+                            ${DRUCK_SVG}
+                            <span>Drucken / PDF</span>
+                        </button>
+                    </div>`;
+            return `
+                    <div class="relative flex-1 xl:flex-none flex">
+                        <button onclick="togglePrintDropdown()" data-help="Drucken / als PDF speichern" class="${DRUCK_KNOPF_CLS}" title="Drucken / PDF speichern">
+                            ${DRUCK_SVG}
+                            <span>Drucken</span>
+                        </button>
+                        <div id="printDropdown" class="hidden absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-2xl border border-slate-100 z-[100] overflow-hidden">
+                            <button onclick="printReport()" class="w-full text-left px-5 py-4 text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors flex items-center gap-3 border-b border-slate-50">
+                                <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                                DIESEN SCHÜLER
+                            </button>
+                            <button onclick="printAllReports()" class="w-full text-left px-5 py-4 text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors flex items-center gap-3 ${mitKopien ? 'border-b border-slate-50' : ''}">
+                                <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                                ALLE SCHÜLER
+                            </button>
+                            ${!mitKopien ? '' : `
+                            <button onclick="exportStudentCopy()" data-help="Eigenständige Kopie des Rechners mit nur den Daten dieses Schülers herunterladen" title="Standalone-Kopie für diesen Schüler speichern" class="w-full text-left px-5 py-4 text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors flex items-center gap-3 border-b border-slate-50">
+                                <svg class="w-4 h-4 text-violet-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M12 12V3m0 9l-4-4m4 4l4-4"></path></svg>
+                                SCHÜLER-KOPIE SPEICHERN
+                            </button>
+                            <button onclick="exportAllStudentCopies()" data-help="Für jeden Schüler eine eigene Standalone-Kopie herunterladen" title="Standalone-Kopien für alle Schüler speichern" class="w-full text-left px-5 py-4 text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors flex items-center gap-3">
+                                <svg class="w-4 h-4 text-violet-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M12 12V3m0 9l-4-4m4 4l4-4"></path></svg>
+                                ALLE SCHÜLER-KOPIEN
+                            </button>`}
+                        </div>
+                    </div>`;
+        };
+
         const avatarInner = (name) => istSchuelerModus()
             ? '<svg class="w-7 h-7 sm:w-10 sm:h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>'
             : name.substring(0, 1);
@@ -2791,33 +2842,7 @@
                         <span>KLASSE</span>
                     </button>`}
 
-                    <div class="relative flex-1 xl:flex-none flex">
-                        <button onclick="togglePrintDropdown()" data-help="Drucken / als PDF speichern" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-3 xl:px-5 rounded-xl shadow-lg flex items-center justify-center gap-2 transition" title="Drucken / PDF speichern">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-                            </svg>
-                            <span>Drucken</span>
-                        </button>
-                        <div id="printDropdown" class="hidden absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-2xl border border-slate-100 z-[100] overflow-hidden">
-                            <button onclick="printReport()" class="w-full text-left px-5 py-4 text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors flex items-center gap-3 ${(window.STUDENT_EXPORT_MODE || istSchuelerModus()) ? '' : 'border-b border-slate-50'}">
-                                <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
-                                DIESEN SCHÜLER
-                            </button>
-                            ${(window.STUDENT_EXPORT_MODE || istSchuelerModus()) ? '' : `
-                            <button onclick="printAllReports()" class="w-full text-left px-5 py-4 text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors flex items-center gap-3 border-b border-slate-50">
-                                <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-                                ALLE SCHÜLER
-                            </button>
-                            <button onclick="exportStudentCopy()" data-help="Eigenständige Kopie des Rechners mit nur den Daten dieses Schülers herunterladen" title="Standalone-Kopie für diesen Schüler speichern" class="w-full text-left px-5 py-4 text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors flex items-center gap-3 border-b border-slate-50">
-                                <svg class="w-4 h-4 text-violet-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M12 12V3m0 9l-4-4m4 4l4-4"></path></svg>
-                                SCHÜLER-KOPIE SPEICHERN
-                            </button>
-                            <button onclick="exportAllStudentCopies()" data-help="Für jeden Schüler eine eigene Standalone-Kopie herunterladen" title="Standalone-Kopien für alle Schüler speichern" class="w-full text-left px-5 py-4 text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors flex items-center gap-3">
-                                <svg class="w-4 h-4 text-violet-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M12 12V3m0 9l-4-4m4 4l4-4"></path></svg>
-                                ALLE SCHÜLER-KOPIEN
-                            </button>`}
-                        </div>
-                    </div>
+                    ${printBlock(true)}
                 </div>
             </div>
         `;
