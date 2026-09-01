@@ -794,7 +794,13 @@
                     </button>
                 </div>
                 <div class="p-6 overflow-y-auto custom-scrollbar space-y-4 text-sm text-slate-600 leading-relaxed">
-                    <p class="text-xs text-slate-400">Kurzfassung der Änderungen. Aktuelle Version: <span class="font-bold text-slate-600">v2.3.0</span>.</p>
+                    <p class="text-xs text-slate-400">Kurzfassung der Änderungen. Aktuelle Version: <span class="font-bold text-slate-600">v2.3.1</span>.</p>
+                    <div>
+                        <div class="flex items-baseline gap-2"><span class="font-extrabold text-indigo-700">v2.3.1</span><span class="text-xs font-bold text-slate-400">01.09.2026</span></div>
+                        <ul class="list-disc pl-5 mt-1 space-y-0.5">
+                            <li>In der Schüler-Ansicht ist der Abschnitt <b>„Bemerkungen / Hinweise" ausgeblendet</b> – Zeugnisbemerkungen sind Sache der Lehrkraft. Auch im Ausdruck entfällt die Box dort.</li>
+                        </ul>
+                    </div>
                     <div>
                         <div class="flex items-baseline gap-2"><span class="font-extrabold text-indigo-700">v2.3.0</span><span class="text-xs font-bold text-slate-400">01.09.2026</span></div>
                         <ul class="list-disc pl-5 mt-1 space-y-0.5">
@@ -1064,7 +1070,7 @@
                             </svg>
                         </button>
                     </h1>
-                    <p class="text-xs text-slate-400 mt-2 uppercase tracking-widest font-bold">Sek I <button onclick="openChangelog()" class="text-slate-300 normal-case tracking-normal font-semibold hover:text-indigo-600 cursor-pointer underline decoration-dotted underline-offset-2 transition-colors" title="Was ist neu? Changelog &amp; Kontakt">· v2.3.0</button></p>
+                    <p class="text-xs text-slate-400 mt-2 uppercase tracking-widest font-bold">Sek I <button onclick="openChangelog()" class="text-slate-300 normal-case tracking-normal font-semibold hover:text-indigo-600 cursor-pointer underline decoration-dotted underline-offset-2 transition-colors" title="Was ist neu? Changelog &amp; Kontakt">· v2.3.1</button></p>
                     <p id="metaDisplay" class="mt-1 text-sm font-bold text-indigo-900"></p>
                     <!-- Stufen-Indikator (nur Arbeitskopie; von stages.js gefüllt) -->
                     <div id="stageIndicator" class="hidden mt-2"></div>
@@ -1302,8 +1308,9 @@
                         <!-- Freiwillige Zusatzprüfung (P10-4) – nur befüllt, wenn der Prüfungsrechner mitgebaut wurde -->
                         <div id="voluntaryExamSection" class="hidden"></div>
 
-                        <!-- Bemerkungen / Hinweise -->
-                        <section class="bg-white rounded-2xl shadow-sm border border-amber-200 overflow-hidden">
+                        <!-- Bemerkungen / Hinweise: Zeugnisbemerkungen sind Sache der Lehrkraft --
+                             im Schüler-Modus ausgeblendet (renderMainView). -->
+                        <section id="remarksSection" class="bg-white rounded-2xl shadow-sm border border-amber-200 overflow-hidden">
                             <div
                                 class="px-6 py-4 bg-amber-50/50 border-b border-amber-100 flex justify-between items-center">
                                 <h3 class="text-base font-bold text-amber-900 flex items-center gap-2">
@@ -2684,6 +2691,17 @@
         // des Anfangsbuchstabens -- der Name ist zu Beginn leer, ein Buchstabe faellt dort weg,
         // und ein Symbol passt besser zu "genau eine Person benutzt diesen Rechner". Dasselbe
         // Icon wie beim Drucken ("DIESEN SCHÜLER"), damit es im Vokabular der App bleibt.
+        // Bemerkungsfeld im AUSDRUCK (alle drei Berichtsvorlagen). Im Schüler-Modus entfällt es --
+        // dort wird nichts eingetragen (das Eingabefeld ist ausgeblendet), eine leere Box mit
+        // „Keine Anmerkungen" wäre auf dem eigenen Ausdruck nur Ballast.
+        const remarksReportSection = (student) => istSchuelerModus() ? '' : `
+                    <section class="w-full border-2 border-dashed border-gray-300 rounded-lg p-3 bg-gray-50/30 flex flex-col justify-start min-h-[100px] mb-2">
+                        <h3 class="text-[10px] font-bold uppercase text-gray-400 mb-1 tracking-wider">Bemerkungen / Hinweise</h3>
+                        <div class="text-[11px] text-gray-800 leading-relaxed font-medium bg-amber-50/50 p-2 rounded border border-amber-100 flex-1">
+                            ${student.remarks && student.remarks.trim() !== "" ? student.remarks : "Keine Anmerkungen"}
+                        </div>
+                    </section>`;
+
         const avatarInner = (name) => istSchuelerModus()
             ? '<svg class="w-7 h-7 sm:w-10 sm:h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>'
             : name.substring(0, 1);
@@ -2712,6 +2730,11 @@
         // Klasse 7/8 (Notenspiegel) füllen DIESELBEN Dashboard-Elemente (#content) wie Klasse 9/10,
         // nur mit Noten statt Punkten und ausgegrauter Abschlussberechnung (renderNoteDashboard).
         function renderMainView() {
+            // Bemerkungen sind Zeugnistext der Lehrkraft -- im Schüler-Modus gibt es dafür keinen
+            // Anlass. Hier (statt in renderSidebar) gesetzt, weil renderMainView() auch allein
+            // aufgerufen wird und für alle drei Ansichten zuständig ist.
+            const bem = document.getElementById('remarksSection');
+            if (bem) bem.classList.toggle('hidden', istSchuelerModus());
             const cfg = typeof getStageConfig === 'function' ? getStageConfig() : null;
             if (cfg && cfg.kind === 'notenspiegel') {
                 if (typeof renderNoteDashboard === 'function') renderNoteDashboard();
@@ -4317,12 +4340,7 @@
                         </section>
                     </div>
                     <div class="flex-grow"></div>
-                    <section class="w-full border-2 border-dashed border-gray-300 rounded-lg p-3 bg-gray-50/30 flex flex-col justify-start min-h-[100px] mb-2">
-                        <h3 class="text-[10px] font-bold uppercase text-gray-400 mb-1 tracking-wider">Bemerkungen / Hinweise</h3>
-                        <div class="text-[11px] text-gray-800 leading-relaxed font-medium bg-amber-50/50 p-2 rounded border border-amber-100 flex-1">
-                            ${student.remarks && student.remarks.trim() !== "" ? student.remarks : "Keine Anmerkungen"}
-                        </div>
-                    </section>
+                    ${remarksReportSection(student)}
                 </div>`;
         };
 
@@ -4500,12 +4518,7 @@
                         <div class="flex-grow"></div>
 
                         <!-- Remarks Section (Fills remaining space) -->
-                        <section class="w-full border-2 border-dashed border-gray-300 rounded-lg p-3 bg-gray-50/30 flex flex-col justify-start min-h-[100px] mb-2">
-                            <h3 class="text-[10px] font-bold uppercase text-gray-400 mb-1 tracking-wider">Bemerkungen / Hinweise</h3>
-                            <div class="text-[11px] text-gray-800 leading-relaxed font-medium bg-amber-50/50 p-2 rounded border border-amber-100 flex-1">
-                                ${student.remarks && student.remarks.trim() !== "" ? student.remarks : "Keine Anmerkungen"}
-                            </div>
-                        </section>
+                        ${remarksReportSection(student)}
                     </div>
 
                     <footer class="mt-2 pt-4 border-t border-gray-300 shrink-0">
