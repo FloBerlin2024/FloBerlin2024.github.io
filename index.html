@@ -794,7 +794,14 @@
                     </button>
                 </div>
                 <div class="p-6 overflow-y-auto custom-scrollbar space-y-4 text-sm text-slate-600 leading-relaxed">
-                    <p class="text-xs text-slate-400">Kurzfassung der Änderungen. Aktuelle Version: <span class="font-bold text-slate-600">v2.3.4</span>.</p>
+                    <p class="text-xs text-slate-400">Kurzfassung der Änderungen. Aktuelle Version: <span class="font-bold text-slate-600">v2.3.5</span>.</p>
+                    <div>
+                        <div class="flex items-baseline gap-2"><span class="font-extrabold text-indigo-700">v2.3.5</span><span class="text-xs font-bold text-slate-400">02.09.2026</span></div>
+                        <ul class="list-disc pl-5 mt-1 space-y-0.5">
+                            <li>In der <b>Schüler-Ansicht bleibt der „Reset"-Knopf sichtbar</b>, solange etwas eingetragen ist – auch nach dem Schließen und erneuten Öffnen. Vorher verschwand er beim Neuladen, obwohl die Noten gespeichert blieben; es gab dann keinen Weg mehr, sauber neu anzufangen.</li>
+                            <li>„Reset" löscht dort jetzt den <b>auf dem Gerät gespeicherten Stand</b> gleich mit. Jahrgang, Rechtsstand und Fächer bleiben stehen – nur die Eingaben gehen weg.</li>
+                        </ul>
+                    </div>
                     <div>
                         <div class="flex items-baseline gap-2"><span class="font-extrabold text-indigo-700">v2.3.4</span><span class="text-xs font-bold text-slate-400">02.09.2026</span></div>
                         <ul class="list-disc pl-5 mt-1 space-y-0.5">
@@ -1090,7 +1097,7 @@
                             </svg>
                         </button>
                     </h1>
-                    <p class="text-xs text-slate-400 mt-2 uppercase tracking-widest font-bold">Sek I <button onclick="openChangelog()" class="text-slate-300 normal-case tracking-normal font-semibold hover:text-indigo-600 cursor-pointer underline decoration-dotted underline-offset-2 transition-colors" title="Was ist neu? Changelog &amp; Kontakt">· v2.3.4</button></p>
+                    <p class="text-xs text-slate-400 mt-2 uppercase tracking-widest font-bold">Sek I <button onclick="openChangelog()" class="text-slate-300 normal-case tracking-normal font-semibold hover:text-indigo-600 cursor-pointer underline decoration-dotted underline-offset-2 transition-colors" title="Was ist neu? Changelog &amp; Kontakt">· v2.3.5</button></p>
                     <p id="metaDisplay" class="mt-1 text-sm font-bold text-indigo-900"></p>
                     <!-- Stufen-Indikator (nur Arbeitskopie; von stages.js gefüllt) -->
                     <div id="stageIndicator" class="hidden mt-2"></div>
@@ -1727,11 +1734,33 @@
         const refreshUndo = () => {
             trackHistory();
             if (istSchuelerModus()) saveSchuelerSnapshot();
-            const r = document.getElementById('resetBtn'); if (r) r.classList.toggle('hidden', !isDirty());
+            // Reset: im Lehrer-Modus sichtbar, sobald von der Ausgangslage abgewichen wurde; im
+            // Schüler-Modus dauerhaft, solange überhaupt etwas eingetragen ist -- die Eingaben
+            // überleben dort das Schließen der App, also muss auch der Weg zurück erhalten bleiben.
+            const r = document.getElementById('resetBtn');
+            if (r) {
+                r.classList.toggle('hidden', istSchuelerModus() ? !schuelerHatDaten() : !isDirty());
+                r.title = istSchuelerModus() ? 'Alle eingetragenen Noten löschen' : 'Alle Änderungen zurücksetzen';
+            }
             const s = document.getElementById('undoStepBtn'); if (s) s.classList.toggle('hidden', undoHistory.length === 0);
             const d = document.getElementById('redoStepBtn'); if (d) d.classList.toggle('hidden', redoStack.length === 0);
         };
         window.resetAll = () => {
+            // Schüler-Modus: zurück auf den leeren Bogen DIESES Jahrgangs (Jahrgang, Rechtsstand und
+            // Fächerzuschnitt bleiben stehen). Der anschließende Render schreibt über refreshUndo()
+            // den leeren Stand nach localStorage -- damit ist auch der gespeicherte Stand gelöscht.
+            if (istSchuelerModus()) {
+                if (!schuelerHatDaten()) return;
+                if (!confirm('Alle eingetragenen Noten löschen und neu anfangen?\n\nDamit wird auch der auf diesem Gerät gespeicherte Stand gelöscht.')) return;
+                students = [blankStudentFrom(students[0])];
+                activeStudentId = students[0].id;
+                baselineJSON = JSON.stringify(students);   // der leere Bogen ist die neue Ausgangslage
+                resetHistory();
+                lastFocusedId = null;
+                renderSidebar();
+                renderMainView();
+                return;
+            }
             if (!isDirty()) return;
             if (!confirm('Alle Änderungen verwerfen und auf den Ausgangszustand zurücksetzen?')) return;
             students = JSON.parse(baselineJSON);
@@ -1796,6 +1825,19 @@
                 nawiFgi = d.nawiFgi;
                 return true;
             } catch (e) { return false; }
+        };
+
+        // Stehen im Schüler-Modus eigene Eingaben drin? Maßstab ist NICHT isDirty(): dort wird gegen
+        // den Startzustand der Sitzung verglichen, und der ist nach einem Neuladen bereits der
+        // gespeicherte Stand -- der Reset-Knopf wäre also genau dann weg, wenn man ihn braucht.
+        // Geprüft wird stattdessen dasselbe, was blankStudentFrom() leert.
+        const schuelerHatDaten = () => {
+            if (!istSchuelerModus() || !students.length) return false;
+            const s = students[0];
+            if ((s.name || '').trim() || (s.remarks || '').trim()) return true;
+            if (Object.values(s.grades || {}).some(g => g && ((g.pts !== null && g.pts !== undefined) || (g.lvl || 'N') !== 'N'))) return true;
+            if (JSON.stringify(s.exam || defaultExam()) !== JSON.stringify(defaultExam())) return true;
+            return false;
         };
 
         // --- Rechtsstand & Jahrgang (NUR Standalone/Produktiv-Build, appStage === null) ---
