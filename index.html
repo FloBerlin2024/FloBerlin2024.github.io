@@ -79,7 +79,8 @@
             --sw-linie: #CBD5E1;
             --sw-linie-zart: #E2E8F0;
             --sw-flaeche: #F1F5F9;
-            --sw-grund: #F8FAFC;
+            --sw-grund: #E2E8F0;          /* Seitengrund: deutlich dunkler als die weißen Karten */
+            --sw-karte-rand: #94A3B8;     /* EIN Rand für alle Karten (2 px, 10 px Radius) */
             --sw-akzent: #4F46E5;
             --sw-akzent-dunkel: #4338CA;
         }
@@ -92,11 +93,6 @@
             color: var(--sw-tinte);
         }
 
-        /* Frühere Glas-Karte: im Swiss Style eine flache weiße Fläche mit feiner Linie. */
-        .glass-card {
-            background: #fff;
-            border: 1px solid var(--sw-linie);
-        }
 
         .grade-input:focus {
             outline: none;
@@ -601,7 +597,7 @@
     background-color: var(--sw-flaeche);
 }
 .swiss thead { border-bottom: 0; }
-.swiss tbody tr:hover { background-color: var(--sw-grund); }
+.swiss tbody tr:hover { background-color: var(--sw-flaeche); }
 
 /* --- Pillen und Abzeichen: 1,5 px Rand in der Statusfarbe ------------------ */
 .swiss .rounded-full.bg-emerald-100 { background-color: #F0FDF4; color: #166534; box-shadow: inset 0 0 0 1.5px #15803D; }
@@ -617,14 +613,16 @@
     color: var(--sw-gedaempft);
 }
 .sw-marke { background: var(--sw-akzent); color: #fff; border-radius: 6px; padding: 2px 8px; font-size: 0.62em; letter-spacing: 0.02em; }
-.sw-kennzahl { background: #fff; border: 2px solid var(--sw-tinte); border-radius: 10px; }
 .sw-zahl { font-size: 40px; line-height: 1; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
 .sw-balken { height: 6px; background: var(--sw-linie-zart); }
 .sw-balken > div { height: 100%; }
-/* Abschlusskarten: erreicht = Statusfarben „bestätigt“, offen = weiß */
-.sw-abschluss { background: #fff; border: 1px solid var(--sw-linie); border-radius: 10px; }
-.sw-abschluss.sw-erreicht { background: #F0FDF4; border: 2px solid #15803D; }
-.sw-abschluss.sw-erreicht h4 { color: #166534; }
+/* Karten: JEDE Fläche mit Inhalt (Kopf, Notentabellen, Kennzahlen, Abschlusskarten,
+   Bemerkungen, Einstellungen, Klassenübersicht) trägt .sw-karte und damit denselben Rand.
+   Ein Status ändert nur Farbe und Fläche, nie Breite oder Radius. */
+.sw-karte { background: #fff; border: 2px solid var(--sw-karte-rand); border-radius: 10px; }
+.sw-karte.sw-erreicht { background: #F0FDF4; border-color: #15803D; }
+.sw-karte.sw-erreicht h4 { color: #166534; }
+.sw-karte.sw-verfehlt, .sw-karte.sw-kennzahl-warnung { background: #FEF2F2; border-color: #B91C1C; }
 
 /* Notentabellen: Spaltenköpfe mit weniger Seitenabstand, damit „KURS-LEVEL“ in
    die 148-px-Spalte passt (Versalien mit Laufweite sind breiter). */
@@ -657,12 +655,12 @@
     border: 2px solid var(--sw-linie); border-radius: 6px; background: #fff;
     font-weight: 800; font-size: 15px; color: var(--sw-tinte); font-variant-numeric: tabular-nums;
 }
-/* Kacheln der Klassenübersicht: 1,5 px Rand in der Schriftfarbe der Kachel */
-.swiss .sw-kachel { border: 1.5px solid currentColor; }
+/* Kacheln der Klassenübersicht: Rand wie .sw-karte (2 px, 10 px), Farbe = Status der Kachel */
+.swiss .sw-kachel { border: 2px solid currentColor; border-radius: 10px; }
 .swiss .sw-kachel .opacity-80 { opacity: 1; }
 .swiss button.sw-kachel:hover { filter: brightness(0.97); }
 .sw-note-schlecht { background: #FEF2F2; border-color: #B91C1C; color: #991B1B; }
-.sw-kennzahl-warnung { background: #FEF2F2; border-color: #B91C1C; color: #991B1B; }
+.sw-kennzahl-warnung { color: #991B1B; }
 
 /* Das hidden-Attribut bleibt immer stärker. */
 .swiss [hidden] { display: none !important; }
@@ -1028,7 +1026,14 @@
                     </button>
                 </div>
                 <div class="p-6 overflow-y-auto custom-scrollbar space-y-4 text-sm text-slate-600 leading-relaxed">
-                    <p class="text-xs text-slate-400">Kurzfassung der Änderungen. Aktuelle Version: <span class="font-bold text-slate-600">v2.4.1</span>.</p>
+                    <p class="text-xs text-slate-400">Kurzfassung der Änderungen. Aktuelle Version: <span class="font-bold text-slate-600">v2.4.2</span>.</p>
+                    <div>
+                        <div class="flex items-baseline gap-2"><span class="font-extrabold text-indigo-700">v2.4.2</span><span class="text-xs font-bold text-slate-400">19.10.2026</span></div>
+                        <ul class="list-disc pl-5 mt-1 space-y-0.5">
+                            <li><b>Einheitliche Karten.</b> Alle Karten haben denselben Rand und dieselben Ecken. Ein Status (erreicht, verfehlt) zeigt sich nur noch in der Farbe.</li>
+                            <li><b>Mehr Kontrast.</b> Der Hintergrund ist dunkler, die Karten heben sich klar ab &#8211; besonders auf dem Handy.</li>
+                        </ul>
+                    </div>
                     <div>
                         <div class="flex items-baseline gap-2"><span class="font-extrabold text-indigo-700">v2.4.1</span><span class="text-xs font-bold text-slate-400">19.10.2026</span></div>
                         <ul class="list-disc pl-5 mt-1 space-y-0.5">
@@ -1342,7 +1347,7 @@
             <div class="p-4 sm:p-6 border-b border-slate-200">
               <div class="flex items-start justify-between gap-3">
                 <div class="min-w-0">
-                    <p class="sw-ueberzeile mb-1.5">Sek I <button onclick="openChangelog()" class="normal-case tracking-normal font-semibold hover:text-indigo-700 cursor-pointer underline decoration-dotted underline-offset-2 transition-colors py-1" title="Was ist neu? Changelog &amp; Kontakt">· v2.4.1</button></p>
+                    <p class="sw-ueberzeile mb-1.5">Sek I <button onclick="openChangelog()" class="normal-case tracking-normal font-semibold hover:text-indigo-700 cursor-pointer underline decoration-dotted underline-offset-2 transition-colors py-1" title="Was ist neu? Changelog &amp; Kontakt">· v2.4.2</button></p>
                     <h1 class="text-[28px] leading-tight font-extrabold tracking-tight text-slate-900 flex items-center gap-2.5">
                         <span class="sw-marke">TGS</span>
                         Abschlussrechner
@@ -1384,7 +1389,7 @@
 
                    Nur in der Standalone sichtbar; im Mehrstufen-Build blendet
                    refreshRegelwerkPanel() die Karte aus. -->
-              <details id="regelwerkPanel" class="hidden mt-4 rounded-2xl border border-slate-200 bg-white" open>
+              <details id="regelwerkPanel" class="hidden mt-4 sw-karte" open>
 
                   <summary id="regelwerkSummary"
                       data-help="Jahrgang und Rechtsstand: aufklappen zum Ändern. Nach einem Import steht hier nur noch, was gilt."
@@ -1517,7 +1522,7 @@
                     <!-- Links: Noteneditor -->
                     <div class="xl:col-span-2 space-y-6">
                         <!-- Fächergruppe I -->
-                        <section class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                        <section class="sw-karte overflow-hidden">
                             <div
                                 class="px-6 py-4 bg-slate-50/80 border-b border-slate-200 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1">
                                 <h3 class="text-base font-bold flex flex-wrap items-center gap-2">
@@ -1553,7 +1558,7 @@
                         </section>
 
                         <!-- Fächergruppe II -->
-                        <section class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                        <section class="sw-karte overflow-hidden">
                             <div
                                 class="px-6 py-4 bg-slate-50/80 border-b border-slate-200 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1">
                                 <h3 class="text-base font-bold flex flex-wrap items-center gap-2">
@@ -1593,10 +1598,10 @@
 
                         <!-- Bemerkungen / Hinweise: Zeugnisbemerkungen sind Sache der Lehrkraft --
                              im Schüler-Modus ausgeblendet (renderMainView). -->
-                        <section id="remarksSection" class="bg-white rounded-2xl shadow-sm border border-amber-200 overflow-hidden">
+                        <section id="remarksSection" class="sw-karte overflow-hidden">
                             <div
-                                class="px-6 py-4 bg-amber-50/50 border-b border-amber-100 flex justify-between items-center">
-                                <h3 class="text-base font-bold text-amber-900 flex items-center gap-2">
+                                class="px-6 py-4 bg-slate-50/80 border-b border-slate-200 flex justify-between items-center">
+                                <h3 class="text-base font-bold flex items-center gap-2">
                                     <span class="w-2 h-2 rounded-full bg-amber-500"></span>
                                     Bemerkungen / Hinweise
                                 </h3>
@@ -1685,7 +1690,7 @@
                      Umbruchpunkt (xl) und dieselbe Knopfleiste, damit Drucken-Knopf und
                      Zurueck-Knopf in beiden Ansichten an derselben Stelle und gleich gross sind. -->
                 <div
-                    class="glass-card p-6 md:p-10 rounded-2xl shadow-sm flex flex-col xl:flex-row justify-between xl:items-center gap-5">
+                    class="sw-karte p-6 md:p-10 flex flex-col xl:flex-row justify-between xl:items-center gap-5">
                     <div class="flex items-center gap-4 sm:gap-6 flex-1 min-w-0">
                         <div class="w-12 h-12 sm:w-20 sm:h-20 rounded-2xl bg-indigo-600 flex items-center justify-center text-white shadow-xl shadow-indigo-100 flex-shrink-0">
                             <svg class="w-6 h-6 sm:w-10 sm:h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1732,7 +1737,7 @@
                         class="w-full sm:max-w-xs px-4 py-2.5 text-sm rounded-xl border border-slate-200 bg-white focus:ring-2 focus:ring-indigo-400 focus:outline-none">
                 </div>
 
-                <div class="glass-card rounded-2xl shadow-sm overflow-hidden border border-slate-200">
+                <div class="sw-karte overflow-hidden">
                     <div class="overflow-x-auto">
                         <table class="w-full text-base whitespace-nowrap">
                             <thead>
@@ -3170,7 +3175,7 @@
 
             // Header
             document.getElementById('dashboardHeader').innerHTML = `
-            <div class="glass-card p-6 md:p-10 rounded-2xl shadow-sm flex flex-col xl:flex-row justify-between xl:items-center gap-5">
+            <div class="sw-karte p-6 md:p-10 flex flex-col xl:flex-row justify-between xl:items-center gap-5">
                 <div class="flex items-center gap-4 sm:gap-6 flex-1 min-w-0">
                     <div class="w-14 h-14 sm:w-20 sm:h-20 rounded-xl bg-indigo-600 flex items-center justify-center text-white text-2xl sm:text-3xl font-black uppercase flex-shrink-0">
                         ${avatarInner(student.name)}
@@ -3399,11 +3404,11 @@
             // Scorecards
             document.getElementById('scoreCards').innerHTML = neuesRecht ? `
             <div class="grid grid-cols-2 gap-4">
-                <div class="sw-kennzahl p-4">
+                <div class="sw-karte sw-kennzahl p-4">
                     <p class="sw-ueberzeile mb-2">Ø Note</p>
                     <span class="sw-zahl text-slate-900">${res.stats.avgNote !== null ? res.stats.avgNote.toFixed(2).replace('.', ',') : '–'}</span>
                 </div>
-                <div class="sw-kennzahl p-4 ${res.stats.unter4 ? 'sw-kennzahl-warnung' : ''}">
+                <div class="sw-karte sw-kennzahl p-4 ${res.stats.unter4 ? 'sw-kennzahl-warnung' : ''}">
                     <p class="sw-ueberzeile mb-2">Unter „ausreichend&#34;</p>
                     <div class="flex items-end justify-between gap-2">
                         <span class="sw-zahl">${res.stats.unter4}</span>
@@ -3414,7 +3419,7 @@
             </div>
         ` : `
             <div class="grid grid-cols-2 gap-4">
-                <div class="sw-kennzahl p-4">
+                <div class="sw-karte sw-kennzahl p-4">
                     <p class="sw-ueberzeile mb-2">Punkte FG II</p>
                     <div class="flex items-end justify-between gap-2 flex-wrap">
                         <span class="sw-zahl text-slate-900">${res.stats.sumFG2.toFixed(1)}</span>
@@ -3422,7 +3427,7 @@
                     </div>
                     <div class="sw-balken mt-3"><div class="bg-indigo-600 transition-all" style="width: ${Math.min(100, (res.stats.sumFG2 / currentTarget.fg2) * 100)}%"></div></div>
                 </div>
-                <div class="sw-kennzahl p-4">
+                <div class="sw-karte sw-kennzahl p-4">
                     <p class="sw-ueberzeile mb-2">Gesamtpunkte</p>
                     <div class="flex items-end justify-between gap-2 flex-wrap">
                         <span class="sw-zahl text-slate-900">${res.stats.sumTotal.toFixed(1)}</span>
@@ -3435,7 +3440,7 @@
 
             // Warning Box for Adjustments
             const adjustmentHtml = res.adjustment.isAdjusted ? `
-                <div class="bg-amber-50 border-2 border-amber-600 text-amber-900 p-4 rounded-xl mb-6 flex items-start gap-3">
+                <div class="bg-amber-50 border-2 border-amber-600 text-amber-900 p-4 rounded-2xl mb-6 flex items-start gap-3">
                     <svg class="w-5 h-5 shrink-0 mt-0.5 text-amber-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
@@ -3460,7 +3465,7 @@
                     ? `<span class="sw-pille sw-st-ok">${SW_SYMBOL.ok}Erreicht</span>`
                     : `<span class="sw-pille sw-st-offen">${SW_SYMBOL.offen}Offen</span>`;
                 return `
-            <div class="sw-abschluss ${data.isMet ? 'sw-erreicht' : ''} p-5">
+            <div class="sw-karte sw-abschluss ${data.isMet ? 'sw-erreicht' : ''} p-5">
                 <div class="flex justify-between items-center gap-3 mb-3">
                     <h4 class="font-extrabold text-xl text-slate-900">${titleHtml}</h4>
                     ${pille}
@@ -3561,7 +3566,7 @@
                         ? `<button onclick="addVoluntaryExam()" data-help="Freiwillige Zusatzprüfung hinzufügen" class="w-full py-2 bg-violet-50 text-violet-600 rounded-xl text-sm font-bold hover:bg-violet-100 transition-colors flex items-center justify-center gap-2"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>ZUSATZPRÜFUNG HINZUFÜGEN</button>`
                         : '<p class="text-xs text-slate-400 text-center">Maximal 3 Zusatzprüfungen möglich.</p>';
                     volSection.innerHTML = `
-                    <section class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                    <section class="sw-karte overflow-hidden">
                         <div class="px-6 py-4 bg-slate-50/80 border-b border-slate-200 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1">
                             <h3 class="text-base font-bold flex flex-wrap items-center gap-2">
                                 <span class="w-2 h-2 rounded-full bg-violet-500"></span>
