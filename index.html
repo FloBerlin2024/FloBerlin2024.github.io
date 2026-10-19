@@ -51,7 +51,7 @@
     <!-- SheetJS für Excel-Import: defer (erst bei Import nötig, blockiert nicht den ersten Aufbau) -->
     <script src="vendor/xlsx.full.min.js" defer></script>
     <style>
-        /* Inter lokal (Variable Font) statt Google Fonts */
+        /* Inter lokal (Variable Font) – Schrift der Druckberichte (#printReportTemplate). */
         @font-face {
             font-family: 'Inter';
             font-style: normal;
@@ -60,31 +60,48 @@
             src: url('vendor/inter/inter-latin-wght-normal.woff2') format('woff2');
         }
 
+        /* Archivo lokal (Variable Font, SIL OFL) – Schrift der Oberfläche im Swiss Style
+           (Doku/Swiss-Style.md). Standalone bettet sie ein, die PWA kopiert sie mit. */
+        @font-face {
+            font-family: 'Archivo';
+            font-style: normal;
+            font-weight: 100 900;
+            font-display: swap;
+            src: url('vendor/archivo/archivo-latin-wght-normal.woff2') format('woff2');
+        }
+
+        /* Farben und Maße des Swiss Style (Doku/Swiss-Style.md, Abschnitt 2). */
+        :root {
+            --sw-tinte: #0F172A;
+            --sw-tinte-2: #1E293B;
+            --sw-gedaempft: #475569;
+            --sw-feldrand: #64748B;
+            --sw-linie: #CBD5E1;
+            --sw-linie-zart: #E2E8F0;
+            --sw-flaeche: #F1F5F9;
+            --sw-grund: #F8FAFC;
+            --sw-akzent: #4F46E5;
+            --sw-akzent-dunkel: #4338CA;
+        }
+
         body {
-            font-family: 'Inter', sans-serif;
-            font-size: 16px;
+            font-family: 'Archivo', 'Helvetica Neue', Arial, sans-serif;
+            font-size: 17px;
+            line-height: 1.5;
+            background: var(--sw-grund);
+            color: var(--sw-tinte);
         }
 
+        /* Frühere Glas-Karte: im Swiss Style eine flache weiße Fläche mit feiner Linie. */
         .glass-card {
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-        }
-
-        /* Mehr Tiefe für Kartenelemente (Dashboard-Karten, Panels) – überschreibt
-           Tailwinds dezentes shadow-sm gezielt per Doppelklassen-Selektor, ohne
-           Buttons/Badges/Modals (die eigene Shadow-Stufen haben) zu berühren.
-           Seit der Vereinheitlichung der Radien tragen ALLE Flächen rounded-2xl;
-           die frühere Zeile für rounded-3xl ist damit gegenstandslos. */
-        .glass-card.shadow-sm,
-        .rounded-2xl.shadow-sm {
-            box-shadow: 0 10px 15px -3px rgba(15, 23, 42, 0.1), 0 4px 6px -4px rgba(15, 23, 42, 0.1);
+            background: #fff;
+            border: 1px solid var(--sw-linie);
         }
 
         .grade-input:focus {
             outline: none;
-            border-color: #6366f1;
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+            border-color: var(--sw-akzent-dunkel);
+            box-shadow: none;
         }
 
         /* Zahlen, die nur ANGEZEIGT werden (Notenschnitt, Punkte-Summen in den Score-Cards,
@@ -211,6 +228,89 @@
             color: #1f2937;
         }
 
+        /* --- DRUCKBÖGEN (report.js, klasse11.js, render.js) ---------------------------
+           Eine feste Skala in pt, damit alle Bögen gleich aussehen und auf A4 passen:
+             17 pt  Titel            10 pt  Untertitel, Abschnittstitel
+             15 pt  Kennzahl         9 pt   Tabellenzellen, Fließtext
+             8 pt   Bedingungen, Tabellenköpfe, Nebenangaben
+             7,5 pt Überzeilen (Versalien), Unterschriftszeile
+           Abstände: 4 mm zwischen Blöcken, 3 mm innerhalb eines Rasters. */
+        #printReportTemplate .report-page,
+        #printReportTemplate .pr-blatt {
+            padding: 2mm 3mm;
+            font-size: 9pt;
+            line-height: 1.35;
+            color: #1f2937;
+            box-sizing: border-box;
+        }
+        /* Einzelbogen: Spalte über die volle Seitenhöhe; .pr-fueller schiebt Bemerkungen und
+           Unterschrift ans Seitenende. Klassenlisten (.pr-blatt) laufen frei über mehrere Seiten. */
+        #printReportTemplate .report-page { display: flex; flex-direction: column; }
+        #printReportTemplate .report-page > * { flex-shrink: 0; }
+        .pr-fueller { flex: 1 1 auto; }
+        .pr-kopf {
+            display: flex; justify-content: space-between; align-items: flex-end; gap: 6mm;
+            border-bottom: 2px solid #1f2937; padding-bottom: 2.5mm; margin-bottom: 4mm;
+        }
+        .pr-titel { font-size: 17pt; line-height: 1.1; font-weight: 800; text-transform: uppercase; letter-spacing: 0.02em; color: #111827; }
+        .pr-untertitel { font-size: 10pt; color: #4b5563; margin-top: 1.5mm; }
+        .pr-meta { font-size: 8pt; color: #6b7280; margin-top: 0.5mm; }
+        .pr-person { text-align: right; flex-shrink: 0; }
+        .pr-name { font-size: 12pt; font-weight: 700; color: #111827; }
+
+        .pr-raster { display: grid; gap: 3mm; margin-bottom: 4mm; }
+        .pr-raster-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 5mm; }
+        .pr-raster-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+        .pr-kennzahl { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 3px; padding: 2mm; text-align: center; }
+        .pr-ueberzeile { font-size: 7.5pt; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: #6b7280; }
+        .pr-zahl { font-size: 15pt; font-weight: 700; line-height: 1.2; margin-top: 1mm; font-variant-numeric: tabular-nums; }
+        .pr-zahl .pr-ziel { color: #6b7280; font-weight: 500; }
+
+        /* Abschluss-/Versetzungskarten: Bedingungen brechen um statt abgeschnitten zu werden. */
+        .pr-karte { border: 1px solid #d1d5db; border-radius: 3px; padding: 2mm 2.5mm; }
+        .pr-karte-kopf { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1mm;
+            font-size: 8.5pt; font-weight: 700; text-transform: uppercase; letter-spacing: 0.02em; }
+        .pr-bedingung { display: flex; justify-content: space-between; align-items: baseline; gap: 2mm;
+            font-size: 8pt; line-height: 1.25; padding: 0.4mm 0; }
+        .pr-bedingung > span:first-child { color: #4b5563; min-width: 0; }
+        .pr-bedingung > span:last-child { font-weight: 700; flex-shrink: 0; }
+        .pr-bedingungen-2 { columns: 2; column-gap: 6mm; }
+        .pr-bedingungen-2 > .pr-bedingung { break-inside: avoid; }
+
+        .pr-abschnitt { font-size: 10pt; font-weight: 700; text-transform: uppercase; letter-spacing: 0.02em;
+            border-left: 3pt solid #4f46e5; padding-left: 2mm; margin-bottom: 1.5mm; line-height: 1.2; }
+        .pr-abschnitt.pr-gruen { border-left-color: #10b981; }
+        .pr-abschnitt.pr-leer { border-left-color: transparent; }
+
+        .pr-tabelle { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+        .pr-tabelle th, .pr-tabelle td { border: 1px solid #e5e7eb; padding: 0.7mm 2mm; text-align: left; vertical-align: middle; }
+        .pr-tabelle th { background: #f3f4f6; font-size: 8pt; font-weight: 700; color: #374151; }
+        .pr-tabelle td { font-size: 9pt; }
+        .pr-tabelle tbody tr:nth-child(even) td { background: #f9fafb; }
+        .pr-tabelle .pr-r { text-align: right; }
+        .pr-tabelle .pr-m { text-align: center; }
+        .pr-tabelle .pr-wert { font-weight: 700; color: #1e40af; }
+        .pr-tabelle .pr-kurs { color: #4b5563; text-transform: uppercase; }
+        .pr-tabelle tr.pr-teil td { font-size: 8pt; color: #9ca3af; }
+        .pr-tabelle tr.pr-teil td:first-child { padding-left: 5mm; }
+        .pr-tabelle tr.pr-teil .pr-wert { color: #93a3c8; }
+
+        .pr-kasten { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 3px; padding: 2.5mm 3mm; margin-bottom: 4mm; font-size: 9pt; }
+        .pr-kasten .pr-hinweis { font-size: 7.5pt; color: #6b7280; margin-top: 1.5mm; }
+
+        .pr-bemerkung { border: 1px solid #d1d5db; border-radius: 3px; padding: 2mm 3mm; min-height: 20mm; }
+        .pr-bemerkung > div { font-size: 9pt; line-height: 1.45; margin-top: 1mm; white-space: pre-line; }
+
+        .pr-fuss { display: flex; justify-content: space-between; margin-top: 5mm; }
+        .pr-fuss > div { width: 33%; }
+        .pr-fuss .pr-linie { height: 8mm; border-bottom: 1px solid #6b7280; }
+        .pr-fuss p { font-size: 7.5pt; color: #6b7280; text-align: center; margin-top: 1mm; }
+
+        /* Klassenlisten: Kopf ohne Kennzahlen, Tabelle läuft über mehrere Seiten. */
+        .pr-liste thead { display: table-header-group; }
+        .pr-liste tr { break-inside: avoid; }
+
         @media print {
             @page {
                 margin: 10mm 10mm 10mm 12mm;
@@ -280,42 +380,9 @@
                 break-after: page;
             }
 
-            header {
-                margin-bottom: 1rem !important;
-                padding-bottom: 0.5rem !important;
-            }
-
-            h1 {
-                font-size: 1.5rem !important;
-            }
-
-            h2 {
-                font-size: 1.1rem !important;
-                margin-bottom: 0.5rem !important;
-            }
-
-            .grid {
-                gap: 0.5rem !important;
-                margin-bottom: 1.5rem !important;
-            }
-
-            table {
-                width: 100% !important;
-                border-collapse: collapse;
-                margin-bottom: 1rem !important;
-            }
-
-            th,
-            td {
-                border: 1px solid #e2e8f0;
-                padding: 4px 8px !important;
-                font-size: 9pt !important;
-            }
-
-            footer {
-                margin-top: 1.5rem !important;
-                padding-top: 1rem !important;
-            }
+            /* Schriftgrößen, Abstände und Tabellen der Druckbögen stehen in den pr-Klassen
+               unten (DRUCKBÖGEN) – hier keine allgemeinen h1/h2/table/.grid-Regeln mehr,
+               die würden die Skala der Bögen wieder durcheinanderbringen. */
 
             body {
                 -webkit-print-color-adjust: exact;
@@ -339,9 +406,9 @@
             border-radius: 12px;
             background: #0f172a;
             color: #e2e8f0;
-            font-size: 12px;
+            font-size: 14px;
             line-height: 1.45;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, .35);
+            border: 1px solid #334155;
             pointer-events: none;
             opacity: 0;
             transform: translateY(4px);
@@ -349,7 +416,7 @@
         }
         #wikiTip.show { opacity: 1; transform: translateY(0); }
         #wikiTip .wt-label { font-weight: 700; color: #fff; display: block; margin-bottom: 2px; }
-        #wikiTip .wt-hint { display: block; margin-top: 4px; color: #a5b4fc; font-size: 11px; }
+        #wikiTip .wt-hint { display: block; margin-top: 4px; color: #a5b4fc; font-size: 13px; }
 
         /* Wiki-Overlay: scrollbarer Inhalt + sanftes Anspringen der Sektionen */
         #wikiContent { scroll-behavior: smooth; }
@@ -390,9 +457,9 @@
             border-radius: 10px;
             background: #0f172a;
             color: #e2e8f0;
-            font-size: 12px;
+            font-size: 14px;
             line-height: 1.4;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, .35);
+            border: 1px solid #334155;
             pointer-events: none;
             opacity: 0;
             transform: translateY(4px);
@@ -414,7 +481,7 @@
         #regelwerkPanel[open] #regelwerkKurz { display: none; }
         /* Eingeklappt ist die Zusammenfassung die ganze Karte -- dann bleiben alle vier
            Ecken rund; aufgeklappt sitzt der Inhalt darunter. */
-        #regelwerkPanel[open] > summary { border-bottom: 1px solid #f1f5f9; }
+        #regelwerkPanel[open] > summary { border-bottom: 1px solid var(--sw-linie-zart); }
 
         @media (prefers-reduced-motion: reduce) {
             #regelwerkPanel .chevron { transition: none; }
@@ -436,10 +503,177 @@
         @media (prefers-reduced-motion: reduce) {
             #undoBar { transition: none; }
         }
+
+
+/* ==========================================================================
+   SWISS-STYLE-SCHICHT (Doku/Swiss-Style.md)
+   Gilt nur innerhalb von <div class="swiss"> in shell.html – die Druckvorlage
+   #printReportTemplate liegt außerhalb und bleibt unberührt.
+   Diese Schicht setzt bewusst NIRGENDS display: Ein- und Ausblenden läuft über
+   Tailwinds hidden/sm:flex/lg:hidden, und ein display hier würde das aushebeln.
+   Größen (Höhen, Breiten) stehen im Markup, nicht hier.
+   ========================================================================== */
+
+/* --- Schrift: kleinste Größe 13 px, Hierarchie über Gewicht und Versalien -- */
+.swiss .text-\[9px\], .swiss .text-\[10px\], .swiss .text-\[11px\] { font-size: 13px; line-height: 1.4; }
+.swiss .text-xs { font-size: 14px; line-height: 1.45; }
+.swiss .text-sm { font-size: 15px; line-height: 1.5; }
+.swiss .font-black, .swiss .font-extrabold { font-weight: 800; }
+.swiss .tracking-wider, .swiss .tracking-widest { letter-spacing: 0.08em; }
+
+/* --- Kontrast: helle Grautöne auf WCAG AA anheben ---------------------- */
+/* Gedämpfter Text: #475569 hält auch auf getönten Flächen (#F1F5F9) 4,5 : 1. */
+.swiss .text-slate-300, .swiss .text-slate-400 { color: var(--sw-gedaempft); }
+.swiss .text-gray-400 { color: #4B5563; }
+.swiss .text-emerald-500, .swiss .text-emerald-600 { color: #047857; }
+.swiss .text-amber-500, .swiss .text-amber-600 { color: #B45309; }
+.swiss .text-red-400, .swiss .text-red-500, .swiss .text-red-600 { color: #B91C1C; }
+.swiss .text-blue-500 { color: #1D4ED8; }
+.swiss .text-indigo-600, .swiss .text-indigo-700, .swiss .text-indigo-900 { color: var(--sw-akzent-dunkel); }
+.swiss h1.text-indigo-900, .swiss #metaDisplay, .swiss #regelwerkKurz { color: var(--sw-tinte); }
+
+/* --- Flächen: flach, feine Linie, kleine Radien, keine Schatten ----------- */
+.swiss .rounded, .swiss .rounded-lg { border-radius: 6px; }
+.swiss .rounded-xl { border-radius: 8px; }
+.swiss .rounded-2xl, .swiss .rounded-3xl { border-radius: 10px; }
+.swiss .shadow, .swiss .shadow-sm, .swiss .shadow-lg, .swiss .shadow-xl, .swiss .shadow-2xl { box-shadow: none; }
+.swiss .backdrop-blur-sm { -webkit-backdrop-filter: none; backdrop-filter: none; }
+.swiss .bg-slate-900\/50, .swiss .bg-slate-900\/60 { background-color: rgba(15, 23, 42, 0.45); }
+.swiss .border-slate-100, .swiss .border-slate-200, .swiss .border-gray-200 { border-color: var(--sw-linie); }
+.swiss .border-amber-100, .swiss .border-amber-200, .swiss .border-amber-300 { border-color: #D97706; }
+.swiss .border-emerald-200, .swiss .border-emerald-300 { border-color: #15803D; }
+.swiss .border-indigo-100, .swiss .border-indigo-200 { border-color: var(--sw-feldrand); }
+.swiss .bg-slate-50\/50, .swiss .bg-slate-50\/70, .swiss .bg-slate-50\/80 { background-color: var(--sw-flaeche); }
+.swiss .divide-slate-50 > :not([hidden]) ~ :not([hidden]),
+.swiss .divide-slate-100 > :not([hidden]) ~ :not([hidden]) { border-color: var(--sw-linie-zart); }
+/* Hover-Hüpfer (scale) passen nicht zum ruhigen Raster. */
+.swiss [class*="hover:scale-105"]:hover { --tw-scale-x: 1; --tw-scale-y: 1; }
+/* Dialoge und schwebende Karten: 2 px Tinte statt Schatten. */
+.swiss .shadow-2xl.bg-white, .swiss #helpLegend > div, .swiss #printDropdown { border: 2px solid var(--sw-tinte); }
+
+/* --- Eingabefelder: 2 px Rand, 8 px Radius, weiß ------------------------- */
+.swiss input[type="text"], .swiss select, .swiss textarea {
+    border: 2px solid var(--sw-feldrand);
+    background-color: #fff;
+    color: var(--sw-tinte);
+    font-family: inherit;
+}
+.swiss input[type="text"], .swiss select { border-radius: 8px; }
+/* Der Schülername im Kopf ist ein Eingabefeld, sieht aber wie eine Überschrift aus. */
+.swiss #input-name { border: 0; background: transparent; border-radius: 0; }
+.swiss #input-name:focus-visible { outline: 3px solid var(--sw-akzent-dunkel); outline-offset: 4px; }
+.swiss .grade-input[readonly] { background: var(--sw-flaeche); border-color: var(--sw-linie); color: var(--sw-gedaempft); }
+.swiss input::placeholder, .swiss textarea::placeholder { color: #64748B; }
+
+/* --- Fokus: 3 px Indigo, auch auf Feldern (Tailwinds focus:outline-none und
+       focus:ring dürfen ihn nicht schlucken) --------------------------------- */
+.swiss :focus-visible { outline: 3px solid var(--sw-akzent-dunkel); outline-offset: 2px; }
+.swiss input:focus-visible, .swiss select:focus-visible, .swiss textarea:focus-visible,
+.swiss summary:focus-visible {
+    outline: 3px solid var(--sw-akzent-dunkel); outline-offset: 2px; box-shadow: none;
+}
+.swiss input:focus, .swiss select:focus, .swiss textarea:focus { border-color: var(--sw-akzent-dunkel); }
+
+/* --- Knöpfe: Farben nach Rolle (Größen stehen im Markup) ------------------ */
+.swiss button.bg-indigo-600, .swiss a.bg-indigo-600 { background-color: var(--sw-akzent); color: #fff; }
+.swiss button.bg-indigo-600:hover, .swiss a.bg-indigo-600:hover { background-color: var(--sw-akzent-dunkel); }
+/* Zweitaktion: weiß, 2 px Feldrand, Tinte */
+.swiss button.sw-zweit, .swiss #addStudentBtn, .swiss #excelImportBtn {
+    background-color: #fff; border: 2px solid var(--sw-feldrand); color: var(--sw-tinte);
+}
+.swiss button.sw-zweit:hover, .swiss #addStudentBtn:hover, .swiss #excelImportBtn:hover { background-color: var(--sw-flaeche); }
+/* Drittaktion: hellgraue Fläche */
+.swiss button.bg-slate-100 { background-color: var(--sw-flaeche); color: var(--sw-tinte); border: 1px solid var(--sw-linie); }
+.swiss button.bg-slate-100:hover { background-color: var(--sw-linie-zart); }
+/* Bemerkungen speichern: Bernstein so dunkel, dass weiße Schrift lesbar ist (5 : 1) */
+.swiss button.bg-amber-500 { background-color: #B45309; }
+.swiss button.bg-amber-500:hover { background-color: #92400E; }
+
+/* --- Umschalter (Jahrgang, Rechtsstand, Ansicht) -------------------------- */
+.swiss [role="radiogroup"] { background-color: var(--sw-flaeche); border: 1px solid var(--sw-linie); border-radius: 8px; }
+.swiss [role="radiogroup"] > button { border-radius: 6px; }
+
+/* --- Tabellen: Kopf in Versalien mit 2 px Tinte --------------------------- */
+.swiss thead th {
+    font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--sw-tinte);
+    border-bottom: 2px solid var(--sw-tinte);
+    background-color: var(--sw-flaeche);
+}
+.swiss thead { border-bottom: 0; }
+.swiss tbody tr:hover { background-color: var(--sw-grund); }
+
+/* --- Pillen und Abzeichen: 1,5 px Rand in der Statusfarbe ------------------ */
+.swiss .rounded-full.bg-emerald-100 { background-color: #F0FDF4; color: #166534; box-shadow: inset 0 0 0 1.5px #15803D; }
+.swiss .rounded-full.bg-amber-100 { background-color: #FFFBEB; color: #92400E; box-shadow: inset 0 0 0 1.5px #D97706; }
+.swiss .rounded-full.bg-indigo-100 { background-color: #EEF2FF; color: var(--sw-akzent-dunkel); box-shadow: inset 0 0 0 1.5px var(--sw-akzent); }
+.swiss .rounded-full.bg-red-100 { background-color: #FEF2F2; color: #991B1B; box-shadow: inset 0 0 0 1.5px #B91C1C; }
+/* Farbpunkte vor Abschnittstiteln: kleine Quadrate statt Kreise */
+.swiss h3 > span.w-2.h-2.rounded-full { width: 10px; height: 10px; border-radius: 0; }
+
+/* --- Bausteine mit eigener Klasse ------------------------------------------- */
+.sw-ueberzeile {
+    font-size: 13px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--sw-gedaempft);
+}
+.sw-marke { background: var(--sw-akzent); color: #fff; border-radius: 6px; padding: 2px 8px; font-size: 0.62em; letter-spacing: 0.02em; }
+.sw-kennzahl { background: #fff; border: 2px solid var(--sw-tinte); border-radius: 10px; }
+.sw-zahl { font-size: 40px; line-height: 1; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+.sw-balken { height: 6px; background: var(--sw-linie-zart); }
+.sw-balken > div { height: 100%; }
+/* Abschlusskarten: erreicht = Statusfarben „bestätigt“, offen = weiß */
+.sw-abschluss { background: #fff; border: 1px solid var(--sw-linie); border-radius: 10px; }
+.sw-abschluss.sw-erreicht { background: #F0FDF4; border: 2px solid #15803D; }
+.sw-abschluss.sw-erreicht h4 { color: #166534; }
+
+/* Notentabellen: Spaltenköpfe mit weniger Seitenabstand, damit „KURS-LEVEL“ in
+   die 148-px-Spalte passt (Versalien mit Laufweite sind breiter). */
+.swiss .grade-table thead th { padding-left: 16px; padding-right: 16px; }
+.swiss .grade-table thead th:first-child { padding-left: 28px; }   /* bündig mit px-7 der Zellen */
+.swiss .grade-table thead th:last-child { padding-right: 28px; }
+
+/* Smartphone: Notentabellen ohne Seitwärts-Scrollen (wie vor dem Swiss Style) */
+@media (max-width: 640px) {
+    .swiss .grade-table thead th { padding-left: 6px; padding-right: 6px; letter-spacing: 0.03em; }
+    .swiss .grade-table thead th:first-child { padding-left: 14px; }
+    .swiss .grade-table select { font-size: 13px; padding-left: 6px; padding-right: 20px; }
+    .swiss .sw-note { min-width: 32px; height: 32px; line-height: 28px; font-size: 14px; }
+}
+
+/* Abschnittsköpfe der Notentabellen: Titel kräftiger */
+.swiss section > div > h3.text-base { font-size: 18px; font-weight: 800; }
+
+/* Statuspille mit Symbol (Doku/Swiss-Style.md, Abschnitt 6) */
+.sw-pille {
+    display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0;
+    padding: 2px 10px; border: 1.5px solid; border-radius: 999px;
+    font-weight: 700; font-size: 15px; line-height: 1.4; white-space: nowrap;
+}
+.sw-st-offen { background: #F1F5F9; color: #334155; border-color: #94A3B8; }
+.sw-st-ok    { background: #F0FDF4; color: #166534; border-color: #15803D; }
+/* Note in der Notentabelle: quadratisches Feld, „mangelhaft“ und schlechter rot */
+.sw-note {
+    display: inline-block; min-width: 36px; height: 36px; line-height: 32px; text-align: center; padding: 0 4px;
+    border: 2px solid var(--sw-linie); border-radius: 6px; background: #fff;
+    font-weight: 800; font-size: 15px; color: var(--sw-tinte); font-variant-numeric: tabular-nums;
+}
+/* Kacheln der Klassenübersicht: 1,5 px Rand in der Schriftfarbe der Kachel */
+.swiss .sw-kachel { border: 1.5px solid currentColor; }
+.swiss .sw-kachel .opacity-80 { opacity: 1; }
+.swiss button.sw-kachel:hover { filter: brightness(0.97); }
+.sw-note-schlecht { background: #FEF2F2; border-color: #B91C1C; color: #991B1B; }
+.sw-kennzahl-warnung { background: #FEF2F2; border-color: #B91C1C; color: #991B1B; }
+
+/* Das hidden-Attribut bleibt immer stärker. */
+.swiss [hidden] { display: none !important; }
     </style>
 </head>
 
-<body class="bg-[#f1f5f9] text-slate-900 min-h-screen">
+<body class="min-h-screen">
+    <!-- Swiss Style (Doku/Swiss-Style.md): Die Gestaltungsschicht in styles.css greift nur
+         innerhalb dieses Rahmens. Die Druckvorlage #printReportTemplate steht bewusst
+         außerhalb und bleibt dadurch unverändert. -->
+    <div class="swiss">
     <!-- Fallback, falls JavaScript komplett deaktiviert ist -->
     <noscript>
         <div style="padding:16px;margin:16px;border:2px solid #b45309;border-radius:10px;background:#fffbeb;color:#92400e;font-family:Inter,system-ui,Arial,sans-serif;">
@@ -479,17 +713,17 @@
     <div id="undoBar" class="no-print fixed bottom-5 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3">
         <button id="resetBtn" onclick="resetAll()" title="Alle Änderungen zurücksetzen"
             data-help="Alle Änderungen verwerfen und auf den Ausgangszustand zurücksetzen (mit Rückfrage)"
-            class="hidden h-12 px-5 rounded-full bg-white hover:bg-orange-50 text-orange-500 border border-orange-300 font-extrabold text-sm shadow-xl flex items-center justify-center transition-colors hover:scale-105">
+            class="hidden h-12 px-5 rounded-full bg-white hover:bg-slate-100 text-slate-900 border-2 border-slate-900 font-extrabold text-sm flex items-center justify-center transition-colors">
             Reset
         </button>
         <button id="undoStepBtn" onclick="undoStep()" title="Letzten Schritt rückgängig machen"
             data-help="Nur die letzte Änderung zurücknehmen (Schritt für Schritt)"
-            class="hidden w-12 h-12 rounded-full bg-orange-500 hover:bg-orange-600 text-white shadow-xl flex items-center justify-center transition-colors hover:scale-105">
+            class="hidden w-12 h-12 rounded-full bg-slate-900 hover:bg-slate-700 text-white border-2 border-white flex items-center justify-center transition-colors">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14L4 9l5-5"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 9h11a4 4 0 110 8h-1"/></svg>
         </button>
         <button id="redoStepBtn" onclick="redoStep()" title="Schritt wiederherstellen"
             data-help="Eine zurückgenommene Änderung wiederherstellen (Gegenstück zum Undo)"
-            class="hidden w-12 h-12 rounded-full bg-orange-500 hover:bg-orange-600 text-white shadow-xl flex items-center justify-center transition-colors hover:scale-105">
+            class="hidden w-12 h-12 rounded-full bg-slate-900 hover:bg-slate-700 text-white border-2 border-white flex items-center justify-center transition-colors">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 14l5-5-5-5"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 9H9a4 4 0 100 8h1"/></svg>
         </button>
     </div>
@@ -499,7 +733,7 @@
          und dort ist der Platz zu knapp -- beim Tippen in der Notentabelle steht er im Weg,
          und die Hilfe-Tooltips leben ohnehin vom Zeigen mit der Maus. -->
     <button id="helpToggle" onclick="toggleHelp()" title="Hilfe: bedienbare Felder anzeigen"
-        class="no-print fixed bottom-5 right-5 z-50 w-12 h-12 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white text-xl font-black shadow-lg hidden sm:flex items-center justify-center transition-colors">?</button>
+        class="no-print fixed bottom-5 right-5 z-50 w-12 h-12 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white text-xl font-black border-2 border-white hidden sm:flex items-center justify-center transition-colors">?</button>
     <div id="helpLegend" class="hidden no-print fixed top-4 left-1/2 -translate-x-1/2 z-50 max-w-[92vw]">
         <div class="bg-white rounded-2xl shadow-xl border border-slate-200 px-4 py-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
             <span class="font-extrabold text-slate-800">Hilfe-Modus</span>
@@ -794,7 +1028,21 @@
                     </button>
                 </div>
                 <div class="p-6 overflow-y-auto custom-scrollbar space-y-4 text-sm text-slate-600 leading-relaxed">
-                    <p class="text-xs text-slate-400">Kurzfassung der Änderungen. Aktuelle Version: <span class="font-bold text-slate-600">v2.3.6</span>.</p>
+                    <p class="text-xs text-slate-400">Kurzfassung der Änderungen. Aktuelle Version: <span class="font-bold text-slate-600">v2.4.1</span>.</p>
+                    <div>
+                        <div class="flex items-baseline gap-2"><span class="font-extrabold text-indigo-700">v2.4.1</span><span class="text-xs font-bold text-slate-400">19.10.2026</span></div>
+                        <ul class="list-disc pl-5 mt-1 space-y-0.5">
+                            <li><b>Sicherheit:</b> Namen, Bemerkungen und Fachbezeichnungen werden immer als reiner Text angezeigt und gedruckt. Ein pr&#228;parierter Name in einer Excel-Datei oder Sch&#252;ler-Kopie kann keinen Code mehr ausf&#252;hren.</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <div class="flex items-baseline gap-2"><span class="font-extrabold text-indigo-700">v2.4.0</span><span class="text-xs font-bold text-slate-400">19.10.2026</span></div>
+                        <ul class="list-disc pl-5 mt-1 space-y-0.5">
+                            <li><b>Neues Aussehen.</b> Ruhigere Oberfl&#228;che mit gr&#246;&#223;erer Schrift, klaren Linien und st&#228;rkeren Kontrasten. Jeder Status hat zus&#228;tzlich ein Symbol, der Fokus ist beim Arbeiten mit der Tastatur immer sichtbar.</li>
+                            <li><b>Ausdrucke &#252;berarbeitet.</b> Die Bedingungen in den Abschlusskarten werden nicht mehr abgeschnitten, Schriftgr&#246;&#223;en und Abst&#228;nde sind auf allen B&#246;gen einheitlich, und jeder Einzelbogen passt auf eine A4-Seite.</li>
+                            <li>Zahlen im Ausdruck mit Komma (&#8222;3,00&#8220; statt &#8222;3.00&#8220;).</li>
+                        </ul>
+                    </div>
                     <div>
                         <div class="flex items-baseline gap-2"><span class="font-extrabold text-indigo-700">v2.3.6</span><span class="text-xs font-bold text-slate-400">02.09.2026</span></div>
                         <ul class="list-disc pl-5 mt-1 space-y-0.5">
@@ -1053,7 +1301,7 @@
                     <p class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Kontakt &amp; Feedback</p>
                     <div class="flex items-center justify-between gap-3 flex-wrap">
                         <button onclick="copyContactMail(this)" title="Adresse in die Zwischenablage kopieren"
-                            class="text-sm font-semibold text-slate-700 break-all hover:text-indigo-600 underline decoration-dotted underline-offset-2 cursor-pointer transition-colors text-left">florian.matthias@lk.brandenburg.de</button>
+                            class="text-sm font-semibold text-slate-700 break-all hover:text-indigo-600 underline decoration-dotted underline-offset-2 cursor-pointer transition-colors text-left py-1">florian.matthias@lk.brandenburg.de</button>
                         <a href="mailto:florian.matthias@lk.brandenburg.de?subject=TGS%20Abschlussrechner%20Feedback"
                             onclick="sendContactMail(event)"
                             class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold rounded-xl shadow transition-colors">
@@ -1088,24 +1336,24 @@
         </div>
 
         <!-- Sidebar: Schülerliste -->
-        <aside class="w-full lg:w-96 bg-white border-r border-slate-200 flex flex-col shrink-0 overflow-hidden">
+        <aside class="w-full lg:w-96 bg-white border-b-2 lg:border-b-0 lg:border-r-2 border-slate-900 flex flex-col shrink-0 overflow-hidden">
             <!-- p-4 auf dem Smartphone (statt p-6): der Kopf traegt dort die Einstellungskarte und
                  soll trotzdem nicht den halben Bildschirm fuellen. -->
-            <div class="p-4 sm:p-6 border-b border-slate-100 bg-slate-50/50">
+            <div class="p-4 sm:p-6 border-b border-slate-200">
               <div class="flex items-start justify-between gap-3">
                 <div class="min-w-0">
-                    <h1 class="text-xl font-extrabold text-indigo-900 flex items-center gap-2">
-                        <span class="bg-indigo-600 text-white p-1 rounded-lg text-base">TGS</span>
+                    <p class="sw-ueberzeile mb-1.5">Sek I <button onclick="openChangelog()" class="normal-case tracking-normal font-semibold hover:text-indigo-700 cursor-pointer underline decoration-dotted underline-offset-2 transition-colors py-1" title="Was ist neu? Changelog &amp; Kontakt">· v2.4.1</button></p>
+                    <h1 class="text-[28px] leading-tight font-extrabold tracking-tight text-slate-900 flex items-center gap-2.5">
+                        <span class="sw-marke">TGS</span>
                         Abschlussrechner
                         <button onclick="openQr()" data-help="QR-Code dieser Seite anzeigen" title="QR-Code zum Teilen"
-                            class="text-slate-300 hover:text-indigo-500 transition-colors flex-shrink-0">
+                            class="text-slate-400 hover:text-indigo-600 transition-colors flex-shrink-0 p-1.5 -m-1 rounded-md">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 013.75 9.375v-4.5zM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 01-1.125-1.125v-4.5zM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0113.5 9.375v-4.5z"></path>
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M6.75 6.75h.75v.75h-.75v-.75zM6.75 16.5h.75v.75h-.75v-.75zM16.5 6.75h.75v.75h-.75v-.75zM13.5 13.5h.75v.75h-.75v-.75zM13.5 19.5h.75v.75h-.75v-.75zM19.5 13.5h.75v.75h-.75v-.75zM19.5 19.5h.75v.75h-.75v-.75zM16.5 16.5h.75v.75h-.75v-.75z"></path>
                             </svg>
                         </button>
                     </h1>
-                    <p class="text-xs text-slate-400 mt-2 uppercase tracking-widest font-bold">Sek I <button onclick="openChangelog()" class="text-slate-300 normal-case tracking-normal font-semibold hover:text-indigo-600 cursor-pointer underline decoration-dotted underline-offset-2 transition-colors" title="Was ist neu? Changelog &amp; Kontakt">· v2.3.6</button></p>
                     <p id="metaDisplay" class="mt-1 text-sm font-bold text-indigo-900"></p>
                     <!-- Stufen-Indikator (nur Arbeitskopie; von stages.js gefüllt) -->
                     <div id="stageIndicator" class="hidden mt-2"></div>
@@ -1136,7 +1384,7 @@
 
                    Nur in der Standalone sichtbar; im Mehrstufen-Build blendet
                    refreshRegelwerkPanel() die Karte aus. -->
-              <details id="regelwerkPanel" class="hidden mt-4 rounded-2xl border border-slate-200 bg-white shadow-sm" open>
+              <details id="regelwerkPanel" class="hidden mt-4 rounded-2xl border border-slate-200 bg-white" open>
 
                   <summary id="regelwerkSummary"
                       data-help="Jahrgang und Rechtsstand: aufklappen zum Ändern. Nach einem Import steht hier nur noch, was gilt."
@@ -1354,16 +1602,16 @@
                                 </h3>
                                 <div class="flex gap-2">
                                     <button onclick="clearRemarks()"
-                                        class="px-3 py-1 text-[10px] font-bold text-amber-700 hover:bg-amber-100 rounded-lg transition-colors">LÖSCHEN</button>
+                                        class="h-10 px-4 text-xs font-bold text-amber-800 hover:bg-amber-100 rounded-lg transition-colors">LÖSCHEN</button>
                                     <button onclick="saveRemarks()"
-                                        class="px-3 py-1 bg-amber-500 text-white text-[10px] font-bold rounded-lg hover:bg-amber-600 transition-colors shadow-sm shadow-amber-100">SPEICHERN</button>
+                                        class="h-10 px-4 bg-amber-500 text-white text-xs font-bold rounded-lg hover:bg-amber-600 transition-colors">SPEICHERN</button>
                                 </div>
                             </div>
                             <div class="p-4">
                                 <textarea id="remarks-input" maxlength="280"
                                     placeholder="Zusätzliche Hinweise für das Zeugnis..."
                                     data-help="Bemerkungen für das Zeugnis erfassen"
-                                    class="w-full h-24 bg-slate-50 border-none focus:ring-2 focus:ring-amber-500 rounded-2xl p-4 text-sm text-slate-700 placeholder:text-slate-400 resize-none font-medium"
+                                    class="w-full h-24 rounded-xl p-4 text-sm text-slate-900 resize-none font-medium"
                                     oninput="syncRemarks(this.value)"></textarea>
                                 <div class="mt-2 flex justify-end">
                                     <span id="char-count" class="text-[10px] font-bold text-slate-300">0 / 280</span>
@@ -1381,13 +1629,7 @@
                         <div id="statusMatrix" class="space-y-4"></div>
 
                         <!-- Info Box -->
-                        <div class="bg-indigo-900 text-white p-6 rounded-2xl shadow-xl relative overflow-hidden">
-                            <div class="absolute -right-4 -bottom-4 opacity-10">
-                                <svg class="w-32 h-32" fill="currentColor" viewBox="0 0 24 24">
-                                    <path
-                                        d="M12 2L1 21h22L12 2zm0 3.45l8.27 14.3H3.73L12 5.45zM11 16h2v2h-2v-2zm0-7h2v5h-2V9z" />
-                                </svg>
-                            </div>
+                        <div class="bg-slate-900 text-white p-6 rounded-2xl relative overflow-hidden">
                             <h4 class="text-base font-bold mb-2 flex items-center gap-2">
                                 <span>💡</span> Info & Regeln
                             </h4>
@@ -1398,7 +1640,7 @@
                             </ul>
 
                             <button onclick="openWiki()" data-help="Regelwerk & Erklärungen öffnen"
-                                class="mt-4 w-full py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl text-sm font-bold transition-colors flex items-center justify-center gap-2 border border-white/15">
+                                class="mt-4 w-full py-2.5 bg-transparent hover:bg-white/10 text-white rounded-xl text-sm font-bold transition-colors flex items-center justify-center gap-2 border-2 border-white">
                                 <span>📖</span> Regelwerk &amp; Erklärungen öffnen
                             </button>
 
@@ -1414,7 +1656,7 @@
                                     BEDEUTUNG DER ZEICHEN
                                 </summary>
                                 <div
-                                    class="mt-3 space-y-3 text-[11px] leading-tight text-indigo-100 bg-indigo-800/50 p-3 rounded-2xl border border-indigo-700/50">
+                                    class="mt-3 space-y-3 text-[11px] leading-tight text-slate-100 bg-slate-800 p-3 rounded-xl border border-slate-600">
                                     <div class="flex items-start gap-3">
                                         <span class="font-bold text-emerald-400 shrink-0">Ja</span>
                                         <p>Bedingung ist vollständig erfüllt.</p>
@@ -1426,7 +1668,7 @@
                                                 class="text-amber-300 font-semibold">Ausfall</span> gewertet.</p>
                                     </div>
                                     <div class="flex items-start gap-3">
-                                        <span class="font-bold text-red-400 shrink-0">Nein</span>
+                                        <span class="font-bold text-red-300 shrink-0">Nein</span>
                                         <p>Kriterium nicht erfüllt (kein Ausgleich möglich, z.B. zu wenige
                                             Gesamtpunkte).</p>
                                     </div>
@@ -1459,7 +1701,7 @@
                     </div>
                     <div class="flex flex-col sm:flex-row items-stretch gap-3 w-full xl:w-auto">
                         <button onclick="toggleClassView()" data-help="Zwischen Einzel- und Klassenansicht wechseln"
-                            class="flex-1 xl:flex-none flex bg-white hover:bg-slate-50 text-indigo-600 font-extrabold py-3 px-3 xl:px-5 rounded-xl shadow-sm border border-indigo-100 items-center justify-center gap-2 transition-all hover:scale-105" title="Zurück zum Schüler">
+                            class="flex-1 xl:flex-none flex sw-zweit font-extrabold py-3 px-3 xl:px-5 rounded-xl items-center justify-center gap-2 transition-colors" title="Zurück zum Schüler">
                             <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
@@ -1520,6 +1762,8 @@
             <div id="osPlaceholder" class="hidden max-w-7xl mx-auto p-4 md:p-8"></div>
         </main>
     </div>
+
+    </div><!-- /swiss -->
 
     <!-- Scripts -->
     <script>
@@ -1909,7 +2153,7 @@
         const showToast = (msg, type = 'info') => {
             const c = document.getElementById('toastContainer');
             if (!c) { alert(msg); return; }
-            const colors = { success: 'bg-emerald-600', error: 'bg-red-600', info: 'bg-slate-800' };
+            const colors = { success: 'bg-emerald-700', error: 'bg-red-700', info: 'bg-slate-900' };
             const el = document.createElement('div');
             // Einblenden von OBEN (passend zur Position), nicht mehr von rechts.
             el.className = `pointer-events-auto text-white text-sm font-semibold text-center px-4 py-3 rounded-xl shadow-lg w-full opacity-0 -translate-y-2 transition-all duration-300 ${colors[type] || colors.info}`;
@@ -2699,6 +2943,11 @@
             return r;
         };
         // --- UI Rendering ---
+        // Statussymbole des Swiss Style: leerer Ring = offen, gefüllt mit Haken = erreicht.
+        const SW_SYMBOL = {
+            offen: '<svg width="14" height="14" viewBox="0 0 18 18" aria-hidden="true"><circle cx="9" cy="9" r="7" fill="none" stroke="currentColor" stroke-width="2.4"/></svg>',
+            ok: '<svg width="14" height="14" viewBox="0 0 18 18" aria-hidden="true"><circle cx="9" cy="9" r="8" fill="currentColor"/><path d="M5.5 9.2l2.3 2.3 4.7-4.8" fill="none" stroke="#F0FDF4" stroke-width="2"/></svg>'
+        };
         // Badge-Stile je Abschluss (für Schülerliste)
         const ABSCHLUSS_BADGE = {
             FORQ: { cls: 'bg-indigo-100 text-indigo-700', label: 'FOR-Q' },
@@ -2740,9 +2989,9 @@
                 const active = activeStudentId === s.id;
                 // Anzeige bewusst schlicht: nur Name + ID + Löschen (Abschluss-Badge entfernt, v1.4.0).
                 return `
-            <div class="w-full text-left p-3 rounded-xl transition-all flex items-center justify-between group ${active ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200' : 'hover:bg-slate-50 text-slate-600'}">
+            <div class="w-full text-left p-3 rounded-xl transition-all flex items-center justify-between group ${active ? 'bg-indigo-600 text-white' : 'hover:bg-slate-100 text-slate-900'}">
                 <button onclick="switchStudent(${s.id})" data-help="Diesen Schüler öffnen" class="flex-1 min-w-0 text-left flex items-center justify-between gap-2">
-                    <span class="font-semibold truncate">${s.name}</span>
+                    <span class="font-semibold truncate">${prText(s.name)}</span>
                     <span class="text-[9px] font-bold shrink-0 ${active ? 'text-indigo-200' : 'text-slate-300'}">ID: ${s.id}</span>
                 </button>
                 ${(window.STUDENT_EXPORT_MODE || istSchuelerModus()) ? '' : `
@@ -2765,13 +3014,44 @@
         // Bemerkungsfeld im AUSDRUCK (alle drei Berichtsvorlagen). Im Schüler-Modus entfällt es --
         // dort wird nichts eingetragen (das Eingabefeld ist ausgeblendet), eine leere Box mit
         // „Keine Anmerkungen" wäre auf dem eigenen Ausdruck nur Ballast.
+        // Text aus Import oder Eingabe (Name, Bemerkung, Fach, Klasse) als reinen Text in HTML-
+        // Vorlagen setzen (Oberfläche und Druckbögen) -- sonst würde HTML darin ausgeführt.
+        const prText = (v) => String(v == null ? '' : v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+
         const remarksReportSection = (student) => istSchuelerModus() ? '' : `
-                    <section class="w-full border-2 border-dashed border-gray-300 rounded-lg p-3 bg-gray-50/30 flex flex-col justify-start min-h-[100px] mb-2">
-                        <h3 class="text-[10px] font-bold uppercase text-gray-400 mb-1 tracking-wider">Bemerkungen / Hinweise</h3>
-                        <div class="text-[11px] text-gray-800 leading-relaxed font-medium bg-amber-50/50 p-2 rounded border border-amber-100 flex-1">
-                            ${student.remarks && student.remarks.trim() !== "" ? student.remarks : "Keine Anmerkungen"}
-                        </div>
+                    <section class="pr-bemerkung">
+                        <p class="pr-ueberzeile">Bemerkungen / Hinweise</p>
+                        <div>${student.remarks && student.remarks.trim() !== "" ? prText(student.remarks.trim()) : "Keine Anmerkungen"}</div>
                     </section>`;
+
+        // Gemeinsame Bausteine aller Druckbögen (Klassen 7–11). Größen und Abstände stehen als
+        // pr-Klassen in styles.css (Abschnitt DRUCKBÖGEN), damit alle Bögen gleich aussehen.
+        const prDatum = () => new Date().toLocaleDateString('de-DE', { year: 'numeric', month: 'long', day: 'numeric' });
+        // Dezimalzahl mit Komma, wie im Zeugnis ("3,00" statt "3.00").
+        const prZahl = (v) => String(v).replace('.', ',');
+        const prKopf = (titel, untertitel, meta, student) => `
+                    <header class="pr-kopf">
+                        <div>
+                            <h1 class="pr-titel">${titel}</h1>
+                            <p class="pr-untertitel">${prText(untertitel)}</p>
+                            ${meta ? `<p class="pr-meta">${meta}</p>` : ''}
+                        </div>
+                        <div class="pr-person">
+                            <p class="pr-name">${prText(student.name)}</p>
+                            <p class="pr-meta">${prText(classLabel() + halfSuffix())}</p>
+                            <p class="pr-meta">${prDatum()}</p>
+                        </div>
+                    </header>`;
+        const prKennzahl = (label, wertHtml, farbe) => `
+                        <div class="pr-kennzahl">
+                            <p class="pr-ueberzeile">${label}</p>
+                            <p class="pr-zahl" style="color:${farbe || '#1f2937'}">${wertHtml}</p>
+                        </div>`;
+        const prUnterschrift = () => `
+                    <footer class="pr-fuss">
+                        <div><div class="pr-linie"></div><p>Ort, Datum</p></div>
+                        <div><div class="pr-linie"></div><p>Unterschrift Klassenleitung</p></div>
+                    </footer>`;
 
         // Drucken-Knopf im Dashboard-Kopf, gemeinsam fuer alle drei Ansichten.
         // Wo es nur EINEN Schueler gibt (Schueler-Modus und die exportierte Schueler-Kopie), bleibt
@@ -2892,13 +3172,14 @@
             document.getElementById('dashboardHeader').innerHTML = `
             <div class="glass-card p-6 md:p-10 rounded-2xl shadow-sm flex flex-col xl:flex-row justify-between xl:items-center gap-5">
                 <div class="flex items-center gap-4 sm:gap-6 flex-1 min-w-0">
-                    <div class="w-14 h-14 sm:w-20 sm:h-20 rounded-2xl bg-indigo-600 flex items-center justify-center text-white text-2xl sm:text-3xl font-black shadow-xl shadow-indigo-100 uppercase flex-shrink-0">
+                    <div class="w-14 h-14 sm:w-20 sm:h-20 rounded-xl bg-indigo-600 flex items-center justify-center text-white text-2xl sm:text-3xl font-black uppercase flex-shrink-0">
                         ${avatarInner(student.name)}
                     </div>
                     <div class="flex-1 min-w-0">
-                        <input type="text" id="input-name" value="${student.name}" oninput="updateName(this.value)" data-help="Schülernamen ändern" class="${nameSizeClass(student.name)} font-black text-slate-900 bg-transparent border-none focus:ring-0 p-0 w-full min-w-0" />
+                        <p class="sw-ueberzeile mb-1">${istSchuelerModus() ? 'Mein Stand' : 'Schülerin / Schüler'}</p>
+                        <input type="text" id="input-name" value="${prText(student.name)}" oninput="updateName(this.value)" data-help="Schülernamen ändern" class="${nameSizeClass(student.name)} font-black text-slate-900 bg-transparent border-none focus:ring-0 p-0 w-full min-w-0" />
                         ${metaLine() ? `<p class="text-slate-500 text-sm mt-1">${metaLine()}</p>` : ''}
-                        <p class="text-slate-500 text-sm mt-1">Möglicher Abschluss: <span class="text-indigo-600 font-bold">${topAbschluss}</span></p>
+                        <p class="text-slate-600 text-sm mt-1">Möglicher Abschluss: <span class="text-indigo-700 font-extrabold">${topAbschluss}</span></p>
                     </div>
                 </div>
 
@@ -2906,7 +3187,7 @@
                      (xl = derselbe Breakpoint, an dem die Abschluss-Karten neben den Inhalt rücken) -->
                 <div class="flex flex-col sm:flex-row items-stretch gap-3 w-full xl:w-auto">
                     ${(window.STUDENT_EXPORT_MODE || istSchuelerModus()) ? '' : `
-                    <button onclick="toggleClassView()" data-help="Zwischen Einzel- und Klassenansicht wechseln" class="flex-1 xl:flex-none flex bg-white hover:bg-slate-50 text-indigo-600 font-extrabold py-3 px-3 xl:px-5 rounded-xl shadow-sm border border-indigo-100 items-center justify-center gap-2 transition-all hover:scale-105" title="Klassenansicht öffnen">
+                    <button onclick="toggleClassView()" data-help="Zwischen Einzel- und Klassenansicht wechseln" class="flex-1 xl:flex-none flex sw-zweit font-extrabold py-3 px-3 xl:px-5 rounded-xl items-center justify-center gap-2 transition-colors" title="Klassenansicht öffnen">
                         <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
                         <span>KLASSE</span>
                     </button>`}
@@ -3009,14 +3290,14 @@
 
                 const mainRow = `
             <tr class="group hover:bg-slate-50/50 transition-colors">
-                <td class="px-7 py-4 font-bold ${data.isComponent ? 'text-slate-400 pl-10 text-[11px]' : 'text-slate-700'}">
+                <td class="px-7 py-4 font-bold ${data.isComponent ? 'text-slate-500 pl-10 text-[11px]' : 'text-slate-900'}">
                     ${data.isComponent ? '↳ ' : ''}${subjectDisplayLabel(data)}
                 </td>
                 ${isFGI && istDifferenziert(key) ? `
                 <td class="px-7 py-4 text-center">
                     <div class="flex items-center justify-center gap-1.5">
                         ${hintBadge(data.lvl, data.pts)}
-                        <select onchange="updateLvl('${key}', this.value)" data-help="Kurs-Level wählen (E- oder G-Kurs)" class="bg-slate-100 border-none text-[10px] font-bold uppercase rounded-lg px-2 py-1 focus:ring-2 focus:ring-indigo-500">
+                        <select onchange="updateLvl('${key}', this.value)" data-help="Kurs-Level wählen (E- oder G-Kurs)" class="text-xs font-bold uppercase rounded-lg pl-2 pr-7 h-10">
                             <option value="G" ${data.lvl === 'G' ? 'selected' : ''}>G-Kurs</option>
                             <option value="E" ${data.lvl === 'E' ? 'selected' : ''}>E-Kurs</option>
                         </select>
@@ -3032,7 +3313,7 @@
                                data-help="${eingabeHilfe}"
                                title="${kunstGesperrt ? 'Note aus Klasse 9, unveränderbar' : ''}"
                                ${feldGesperrt ? 'readonly' : ''}
-                               class="grade-input w-16 text-center font-mono py-1 rounded-lg ${feldGesperrt ? 'bg-slate-200 cursor-not-allowed text-slate-500' : 'bg-slate-50'} border border-slate-200 text-sm ${data.isComponent ? 'opacity-60 scale-90' : ''}" />
+                               class="grade-input w-16 h-10 text-center font-mono rounded-lg ${feldGesperrt ? 'cursor-not-allowed' : ''} text-sm ${data.isComponent ? 'opacity-60 scale-90' : ''}" />
                         ${data.isCalculated ? '<span class="absolute left-1/2 translate-x-[2.25rem] text-xs text-slate-400">Ø</span>' : ''}
                         ${kunstGesperrt ? '<button onclick="kunstEntsperren()" title="Note aus Klasse 9 – zum Ändern entsperren" data-help="Kunstnote aus Klasse 9 zum Ändern freigeben" class="absolute left-1/2 translate-x-[2.25rem] text-xs text-slate-400 hover:text-indigo-600">🔒</button>' : ''}
                         ${(kunstUebernahme && data.pts === null) ? '<span title="Note aus Klasse 9 eintragen" class="absolute left-1/2 translate-x-[2.25rem] text-xs text-slate-400">Kl. 9</span>' : ''}
@@ -3046,7 +3327,7 @@
                     </div>
                 </td>` : '<td class="px-7 py-4"></td>')}
                 <td class="px-7 py-4 text-right">
-                    <span class="inline-block w-8 h-8 leading-8 text-center rounded-lg font-bold text-sm ${noteAnzeige(data.pts, data.lvl) > 4 ? 'bg-red-100 text-red-600' : 'bg-slate-100 text-slate-800'} ${data.isComponent ? 'scale-75 opacity-60' : ''}">
+                    <span class="sw-note ${noteAnzeige(data.pts, data.lvl) > 4 ? 'sw-note-schlecht' : ''} ${data.isComponent ? 'scale-75 opacity-60' : ''}">
                         ${noteAnzeige(data.pts, data.lvl)}
                     </span>
                 </td>
@@ -3118,50 +3399,44 @@
             // Scorecards
             document.getElementById('scoreCards').innerHTML = neuesRecht ? `
             <div class="grid grid-cols-2 gap-4">
-                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Ø Note</p>
-                    <div class="flex items-end justify-between">
-                        <span class="text-3xl font-black text-slate-900">${res.stats.avgNote !== null ? res.stats.avgNote.toFixed(2).replace('.', ',') : '–'}</span>
-                    </div>
+                <div class="sw-kennzahl p-4">
+                    <p class="sw-ueberzeile mb-2">Ø Note</p>
+                    <span class="sw-zahl text-slate-900">${res.stats.avgNote !== null ? res.stats.avgNote.toFixed(2).replace('.', ',') : '–'}</span>
                 </div>
-                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Unter „ausreichend&#34;</p>
-                    <div class="flex items-end justify-between">
-                        <span class="text-3xl font-black ${res.stats.unter4 ? 'text-red-600' : 'text-slate-900'}">${res.stats.unter4}</span>
-                        <span class="text-xs font-bold text-slate-400 pb-1">Fächer</span>
+                <div class="sw-kennzahl p-4 ${res.stats.unter4 ? 'sw-kennzahl-warnung' : ''}">
+                    <p class="sw-ueberzeile mb-2">Unter „ausreichend&#34;</p>
+                    <div class="flex items-end justify-between gap-2">
+                        <span class="sw-zahl">${res.stats.unter4}</span>
+                        <span class="text-sm font-bold pb-0.5">Fächer</span>
                     </div>
-                    <p class="text-[10px] text-slate-400 mt-3">${res.stats.eKurse} E-Kurs${res.stats.eKurse === 1 ? '' : 'e'} · kein Ausgleich mehr möglich</p>
+                    <p class="text-xs mt-2">${res.stats.eKurse} E-Kurs${res.stats.eKurse === 1 ? '' : 'e'} · kein Ausgleich mehr möglich</p>
                 </div>
             </div>
         ` : `
             <div class="grid grid-cols-2 gap-4">
-                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Punkte FG II </p>
-                    <div class="flex items-end justify-between">
-                        <span class="text-3xl font-black text-slate-900">${res.stats.sumFG2.toFixed(1)}</span>
-                        <span class="text-xs font-bold text-slate-400 pb-1">/ ${currentTarget.fg2}</span>
+                <div class="sw-kennzahl p-4">
+                    <p class="sw-ueberzeile mb-2">Punkte FG II</p>
+                    <div class="flex items-end justify-between gap-2 flex-wrap">
+                        <span class="sw-zahl text-slate-900">${res.stats.sumFG2.toFixed(1)}</span>
+                        <span class="text-sm font-bold text-slate-600 pb-0.5">/ ${currentTarget.fg2}</span>
                     </div>
-                    <div class="w-full bg-slate-100 h-1.5 rounded-full mt-3 overflow-hidden">
-                        <div class="bg-indigo-500 h-full transition-all" style="width: ${Math.min(100, (res.stats.sumFG2 / currentTarget.fg2) * 100)}%"></div>
-                    </div>
+                    <div class="sw-balken mt-3"><div class="bg-indigo-600 transition-all" style="width: ${Math.min(100, (res.stats.sumFG2 / currentTarget.fg2) * 100)}%"></div></div>
                 </div>
-                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Gesamtpunkte</p>
-                    <div class="flex items-end justify-between">
-                        <span class="text-3xl font-black text-slate-900">${res.stats.sumTotal.toFixed(1)}</span>
-                        <span class="text-xs font-bold text-slate-400 pb-1">/ ${currentTarget.total}</span>
+                <div class="sw-kennzahl p-4">
+                    <p class="sw-ueberzeile mb-2">Gesamtpunkte</p>
+                    <div class="flex items-end justify-between gap-2 flex-wrap">
+                        <span class="sw-zahl text-slate-900">${res.stats.sumTotal.toFixed(1)}</span>
+                        <span class="text-sm font-bold text-slate-600 pb-0.5">/ ${currentTarget.total}</span>
                     </div>
-                    <div class="w-full bg-slate-100 h-1.5 rounded-full mt-3 overflow-hidden">
-                        <div class="bg-emerald-500 h-full transition-all" style="width: ${Math.min(100, (res.stats.sumTotal / currentTarget.total) * 100)}%"></div>
-                    </div>
+                    <div class="sw-balken mt-3"><div class="bg-emerald-700 transition-all" style="width: ${Math.min(100, (res.stats.sumTotal / currentTarget.total) * 100)}%"></div></div>
                 </div>
             </div>
         `;
 
             // Warning Box for Adjustments
             const adjustmentHtml = res.adjustment.isAdjusted ? `
-                <div class="bg-yellow-50 border border-yellow-200 text-yellow-800 p-4 rounded-xl mb-6 flex items-start gap-3">
-                    <svg class="w-5 h-5 shrink-0 mt-0.5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="bg-amber-50 border-2 border-amber-600 text-amber-900 p-4 rounded-xl mb-6 flex items-start gap-3">
+                    <svg class="w-5 h-5 shrink-0 mt-0.5 text-amber-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
                     <div class="text-sm font-medium">
@@ -3176,36 +3451,37 @@
             const buildStatusBox = (title, data) => {
                 const tgt = targetTotals[title] || 0;
                 const pct = (tgt && !neuesRecht) ? Math.min(100, Math.round(res.stats.sumTotal / tgt * 100)) : 0;
-                const barColor = data.isMet ? 'bg-emerald-500' : (pct >= 80 ? 'bg-amber-400' : 'bg-indigo-400');
+                const barColor = data.isMet ? 'bg-emerald-700' : (pct >= 80 ? 'bg-amber-600' : 'bg-indigo-600');
                 const termKey = statusTermKey[title];
                 const titleHtml = termKey ? `<span class="wiki-term" data-term="${termKey}">${title}</span>` : title;
+                // Swiss Style: erreicht = Statusfarben „bestätigt" mit Symbol und Wort,
+                // offen = weiße Karte mit leerem Ring. Nie nur Farbe.
+                const pille = data.isMet
+                    ? `<span class="sw-pille sw-st-ok">${SW_SYMBOL.ok}Erreicht</span>`
+                    : `<span class="sw-pille sw-st-offen">${SW_SYMBOL.offen}Offen</span>`;
                 return `
-            <div class="p-5 rounded-2xl border ${data.isMet ? 'border-emerald-200 bg-emerald-50/20' : 'border-slate-200 bg-white'} shadow-sm transition-all">
-                <div class="flex justify-between items-center mb-3">
-                    <h4 class="font-black ${data.isMet ? 'text-emerald-700' : 'text-slate-800'} text-lg">${titleHtml}</h4>
-                    <span class="w-8 h-8 rounded-full flex items-center justify-center ${data.isMet ? 'bg-emerald-500 text-white' : 'bg-slate-100 text-slate-400'}">
-                        ${data.isMet ? '✓' : '×'}
-                    </span>
+            <div class="sw-abschluss ${data.isMet ? 'sw-erreicht' : ''} p-5">
+                <div class="flex justify-between items-center gap-3 mb-3">
+                    <h4 class="font-extrabold text-xl text-slate-900">${titleHtml}</h4>
+                    ${pille}
                 </div>
                 ${neuesRecht ? '' : `
                 <div class="mb-4">
-                    <div class="flex justify-between text-[10px] font-bold text-slate-400 mb-1">
+                    <div class="flex justify-between text-xs font-bold text-slate-600 mb-1.5">
                         <span>Gesamtpunkte</span>
-                        <span class="${data.isMet ? 'text-emerald-600' : 'text-slate-500'}">${res.stats.sumTotal.toFixed(0)} / ${tgt}</span>
+                        <span class="tabular-nums ${data.isMet ? 'text-emerald-800' : 'text-slate-900'}">${res.stats.sumTotal.toFixed(0)} / ${tgt}</span>
                     </div>
-                    <div class="h-2 rounded-full bg-slate-100 overflow-hidden">
-                        <div class="h-full rounded-full ${barColor} transition-all" style="width:${pct}%"></div>
-                    </div>
+                    <div class="sw-balken"><div class="${barColor} transition-all" style="width:${pct}%"></div></div>
                 </div>`}
-                <div class="space-y-2">
+                <div class="divide-y divide-slate-100">
                     ${data.details.map(d => {
                 const s = d.status || (d.ok ? 'ok' : 'fail');
-                const color = s === 'ok' ? 'text-emerald-500' : (s === 'warning' ? 'text-amber-500' : (s === 'unknown' ? 'text-blue-500' : 'text-red-400'));
+                const color = s === 'ok' ? 'text-emerald-800' : (s === 'warning' ? 'text-amber-800' : (s === 'unknown' ? 'text-blue-800' : 'text-red-700'));
                 const text = s === 'ok' ? 'Ja' : (s === 'warning' ? '⚠️' : (s === 'unknown' ? '?' : 'Nein'));
                 return `
-                        <div class="flex justify-between items-center text-[11px] font-medium">
-                            <span class="${s !== 'fail' ? 'text-slate-600' : 'text-slate-400'}">${d.label}</span>
-                            <span class="${color} font-bold">${text}</span>
+                        <div class="flex justify-between items-start gap-3 py-1.5 text-sm">
+                            <span class="text-slate-700">${d.label}</span>
+                            <span class="${color} font-extrabold shrink-0">${text}</span>
                         </div>`;
             }).join('')}
                 </div>
@@ -3215,7 +3491,7 @@
 
             // Hinweis, falls die freiwillige Zusatzprüfung den Abschluss verbessern würde (unzulässig -> gekappt)
             const examBannerHtml = (examCalc && examCalc.isCapped) ? `
-                <div class="bg-amber-50 border border-amber-300 text-amber-800 p-4 rounded-xl mb-2 flex items-start gap-3">
+                <div class="bg-amber-50 border-2 border-amber-600 text-amber-900 p-4 rounded-xl mb-2 flex items-start gap-3">
                     <svg class="w-5 h-5 shrink-0 mt-0.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
@@ -3233,7 +3509,7 @@
                 ? buildStatusBox('Versetzung in die nächste Jahrgangsstufe', res.VERSETZUNG)
                 : '';
             const prognoseHinweis = noteJg ? `
-                <div class="text-[11px] font-bold uppercase tracking-widest text-slate-400 pt-2">
+                <div class="sw-ueberzeile pt-2">
                     Abschlussprognose – kein amtlicher Abschluss
                 </div>` : '';
 
@@ -3435,8 +3711,8 @@
         // Segment-Schalter im Stil der App: heller Track, aktives Segment als weisse Pille.
         // Hoehe h-11 (44px) auf dem Smartphone, sm:h-9 (36px) ab Tablet -- Touch-tauglich.
         const SEG_BASIS = 'h-11 sm:h-9 rounded-lg text-sm font-black transition-colors flex items-center justify-center';
-        const SEG_AKTIV = SEG_BASIS + ' bg-indigo-600 text-white shadow-sm';
-        const SEG_AUS   = SEG_BASIS + ' text-slate-500 hover:bg-white hover:text-indigo-600';
+        const SEG_AKTIV = SEG_BASIS + ' bg-indigo-600 text-white';
+        const SEG_AUS   = SEG_BASIS + ' text-slate-900 hover:bg-white hover:text-indigo-700';
 
         // Pfeiltasten-Navigation innerhalb einer Segment-Gruppe (WAI-ARIA-Muster fuer
         // Radiogruppen: die Auswahl folgt dem Fokus, Tab springt aus der Gruppe heraus).
@@ -4013,18 +4289,19 @@
             el.innerHTML = `
                 <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"></div>
                 <div class="relative bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-md p-6 sm:p-10 text-center">
-                    <div class="inline-flex items-center gap-2 text-indigo-900 mb-8">
-                        <span class="bg-indigo-600 text-white p-1.5 rounded-lg text-base font-extrabold">TGS</span>
-                        <span class="text-2xl font-extrabold">Abschlussrechner</span>
+                    <p class="sw-ueberzeile mb-2">Sek I</p>
+                    <div class="inline-flex items-center gap-2.5 text-slate-900 mb-8">
+                        <span class="sw-marke text-2xl font-extrabold">TGS</span>
+                        <span class="text-3xl font-extrabold tracking-tight">Abschlussrechner</span>
                     </div>
                     <p class="text-slate-500 text-sm mb-6">Wer möchte den Rechner benutzen?</p>
                     <div class="space-y-3">
                         <button onclick="chooseModus('schueler')" data-help="Vereinfachte Ansicht: eigene Noten eintragen, ohne Verwaltungsfunktionen"
-                            class="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold rounded-2xl shadow-lg transition-colors">
+                            class="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold rounded-xl transition-colors">
                             Schüler / Eltern
                         </button>
                         <button onclick="chooseModus('lehrer')" data-help="Voller Funktionsumfang: mehrere Schüler, Excel-Import, Klassenansicht"
-                            class="w-full py-4 bg-white hover:bg-slate-50 text-slate-700 font-extrabold rounded-2xl border-2 border-slate-200 transition-colors">
+                            class="w-full py-4 sw-zweit font-extrabold rounded-xl transition-colors">
                             Lehrkraft
                         </button>
                     </div>
@@ -4285,7 +4562,7 @@
                 const action = key ? `onclick="toggleClassSort('${key}')"` : 'onclick="clearClassSort()"';
                 const title = key ? (active ? 'Sortierung aufheben' : `Nach „${CLASS_SORT_LABELS[key]}" sortieren`) : 'Sortierung zurücksetzen';
                 return `<button type="button" ${action} title="${title}" data-help="${key ? 'Klick: nach diesem Kriterium sortieren' : 'Sortierung zurücksetzen'}"
-                    class="w-full h-full px-3 py-2 sm:px-4 sm:py-3 rounded-2xl ${cls} flex flex-col sm:flex-row sm:items-baseline gap-0 sm:gap-2 shadow-sm transition-all hover:shadow-md focus:outline-none${ring}">
+                    class="sw-kachel w-full h-full px-3 py-2 sm:px-4 sm:py-3 rounded-xl ${cls} flex flex-col sm:flex-row sm:items-baseline gap-0 sm:gap-2 transition-colors${ring}">
                     <span class="text-lg sm:text-2xl font-black leading-tight">${value}</span>
                     <span class="text-[10px] sm:text-xs font-bold uppercase tracking-wide sm:tracking-wide text-left leading-tight whitespace-nowrap">${label}</span>
                 </button>`;
@@ -4355,7 +4632,7 @@
                                 ${s.name.substring(0, 1)}
                             </div>
                             <div>
-                                <div class="font-bold text-slate-700 text-lg">${s.name}</div>
+                                <div class="font-bold text-slate-700 text-lg">${prText(s.name)}</div>
                                 <div class="text-xs text-slate-400 font-mono">ID: ${s.id}</div>
                             </div>
                         </div>
@@ -4388,12 +4665,12 @@
                 opts = opts || {};
                 const data = student.grades[k] || {};
                 const v = opts.value !== undefined ? opts.value : noteVal(k);
-                const label = opts.label || subjectDisplayLabel({ key: k, fach: data.fach });
+                const label = prText(opts.label || subjectDisplayLabel({ key: k, fach: data.fach }));
                 const lvl = (data.lvl === 'E' || data.lvl === 'G') && !opts.component ? data.lvl : '';
-                return `<tr>
-                    <td class="p-1 font-medium border-b border-gray-200 text-xs ${opts.component ? 'pl-6 text-gray-400 text-[9px]' : ''}">${opts.component ? '↳ ' : ''}${label}</td>
-                    <td class="p-1 text-gray-600 border-b border-gray-200 text-[10px] uppercase">${lvl}</td>
-                    <td class="p-1 text-right font-bold border-b border-gray-200 text-blue-800 text-xs ${opts.component ? 'opacity-60' : ''}">${v !== null ? String(v).replace('.', ',') : 'O.B.'}</td>
+                return `<tr${opts.component ? ' class="pr-teil"' : ''}>
+                    <td>${opts.component ? '↳ ' : ''}${label}</td>
+                    <td class="pr-kurs">${lvl}</td>
+                    <td class="pr-r pr-wert">${v !== null ? prZahl(v) : 'O.B.'}</td>
                 </tr>`;
             };
             let fgiiRows = fgiiMain.map(k => rowFor(k)).join('');
@@ -4403,37 +4680,24 @@
                 fgiiRows += rowFor('GEWI', { value: gewiAvg, label: 'GEWI (Ø)' });
                 fgiiRows += gewiComp.map(k => rowFor(k, { component: true })).join('');
             }
-            const tableHead = '<thead><tr class="bg-gray-100 border-b border-gray-300"><th class="p-1 text-xs text-left">Fach</th><th class="p-1 text-xs text-left">Kurs</th><th class="p-1 text-right text-xs">Note</th></tr></thead>';
+            const tableHead = '<thead><tr><th>Fach</th><th>Kurs</th><th class="pr-r">Note</th></tr></thead>';
             return `
-                <div class="report-page bg-white p-6 flex flex-col relative box-border mx-auto">
-                    <header class="border-b-2 border-gray-800 pb-2 mb-4 shrink-0">
-                        <div class="flex justify-between items-end">
-                            <div>
-                                <h1 class="text-2xl font-bold uppercase tracking-wide text-gray-900">Notenspiegel</h1>
-                                <p class="text-gray-600 mt-1 text-sm">${classLabel()} – Prognose, kein amtlicher Abschluss</p>
-                            </div>
-                            <div class="text-right">
-                                <p class="font-semibold text-base">${student.name}</p>
-                                <p class="text-xs text-gray-500">${classLabel()}${halfSuffix()}</p>
-                                <p class="text-xs text-gray-500 text-right mt-0.5">${new Date().toLocaleDateString('de-DE', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
-                            </div>
-                        </div>
-                    </header>
-                    <div class="bg-gray-50 p-2 rounded border border-gray-200 text-center mb-4 shrink-0 w-1/3">
-                        <p class="text-[10px] text-gray-500 uppercase font-semibold">Notendurchschnitt</p>
-                        <p class="text-lg font-bold text-blue-600 mt-1">${avg}</p>
+                <div class="report-page">
+                    ${prKopf('Notenspiegel', `${classLabel()} – Prognose, kein amtlicher Abschluss`, '', student)}
+                    <div class="pr-raster pr-raster-3">
+                        ${prKennzahl('Notendurchschnitt', prZahl(avg), '#2563eb')}
                     </div>
-                    <div class="grid grid-cols-2 gap-6 mb-4 shrink-0">
+                    <div class="pr-raster pr-raster-2">
                         <section>
-                            <h2 class="text-sm font-bold mb-1 border-l-4 border-indigo-600 pl-6 uppercase tracking-tight">Fächergruppe I</h2>
-                            <table class="w-full text-left">${tableHead}<tbody>${fgiKeys.map(k => rowFor(k)).join('')}</tbody></table>
+                            <h2 class="pr-abschnitt">Fächergruppe I</h2>
+                            <table class="pr-tabelle">${tableHead}<tbody>${fgiKeys.map(k => rowFor(k)).join('')}</tbody></table>
                         </section>
                         <section>
-                            <h2 class="text-sm font-bold mb-1 border-l-4 border-emerald-500 pl-6 uppercase tracking-tight">Fächergruppe II</h2>
-                            <table class="w-full text-left">${tableHead}<tbody>${fgiiRows}</tbody></table>
+                            <h2 class="pr-abschnitt pr-gruen">Fächergruppe II</h2>
+                            <table class="pr-tabelle">${tableHead}<tbody>${fgiiRows}</tbody></table>
                         </section>
                     </div>
-                    <div class="flex-grow"></div>
+                    <div class="pr-fueller"></div>
                     ${remarksReportSection(student)}
                 </div>`;
         };
@@ -4467,20 +4731,20 @@
                     if (!yr || !ef || yr.pts === null || ef.pts === null) return null;
                     if (Math.abs(ef.pts - yr.pts) < 1e-9) return null;
                     const yn = getNote(yr.pts, yr.lvl), en = getNote(ef.pts, ef.lvl);
-                    const cls = en < yn ? 'text-green-600' : (en > yn ? 'text-red-600' : 'text-gray-800');
-                    return `<tr><td class="p-0.5 text-xs">${subjectDisplayLabel({ key: k, fach: yr.fach })}</td><td class="p-0.5 text-right text-xs">${yr.pts.toFixed(1)} (${yn})</td><td class="p-0.5 text-right text-xs font-bold ${cls}">${ef.pts.toFixed(1)} (${en})</td></tr>`;
+                    const farbe = en < yn ? '#16a34a' : (en > yn ? '#dc2626' : '#1f2937');
+                    return `<tr><td>${prText(subjectDisplayLabel({ key: k, fach: yr.fach }))}</td><td class="pr-r">${prZahl(yr.pts.toFixed(1))} (${yn})</td><td class="pr-r" style="font-weight:700;color:${farbe}">${prZahl(ef.pts.toFixed(1))} (${en})</td></tr>`;
                 }).filter(Boolean).join('');
                 const cappedNote = examCalc.isCapped
-                    ? ` <span class="text-[9px] text-amber-700">(Zusatzprüfung gekappt: ${examCalc.fullLabel} nicht zulässig)</span>` : '';
+                    ? ` <span style="font-weight:400;color:#b45309">(Zusatzprüfung gekappt: ${examCalc.fullLabel} nicht zulässig)</span>` : '';
                 examSectionHtml = `
-                    <div class="border border-indigo-300 rounded p-2 mb-4 shrink-0 bg-indigo-50/30">
-                        <div class="flex justify-between items-center mb-1">
-                            <h4 class="font-bold text-xs uppercase text-indigo-800">Nach Abschlussprüfung</h4>
-                            <span class="font-bold text-xs text-indigo-800">Abschluss: ${examCalc.cappedLabel}${cappedNote}</span>
-                        </div>
-                        ${itemRows ? `<table class="w-full text-left"><thead><tr class="text-gray-500"><th class="p-0.5 text-[10px]">Fach</th><th class="p-0.5 text-right text-[10px]">Jahr (Note)</th><th class="p-0.5 text-right text-[10px]">Endnote (Note)</th></tr></thead><tbody>${itemRows}</tbody></table>`
-                        : '<p class="text-[10px] text-gray-500">Prüfungen eingetragen, aber keine Fachnote verändert.</p>'}
-                    </div>`;
+                        <div class="pr-karte" style="border-color:#a5b4fc;margin-bottom:4mm">
+                            <div class="pr-karte-kopf" style="color:#3730a3">
+                                <span>Nach Abschlussprüfung</span>
+                                <span>Abschluss: ${examCalc.cappedLabel}${cappedNote}</span>
+                            </div>
+                            ${itemRows ? `<table class="pr-tabelle"><thead><tr><th>Fach</th><th class="pr-r">Jahr (Note)</th><th class="pr-r">Endnote (Note)</th></tr></thead><tbody>${itemRows}</tbody></table>`
+                            : '<p class="pr-bedingung"><span>Prüfungen eingetragen, aber keine Fachnote verändert.</span></p>'}
+                        </div>`;
             }
 
             // Ziel-Bestimmung für Druck (Gleiche Logik wie Dashboard). Das neue Recht kennt
@@ -4492,141 +4756,79 @@
             if (!neuesRecht && res.FOR.isMet) currentTarget = res.stats.targets.forq;
             else if (!neuesRecht && res.EBR.isMet) currentTarget = res.stats.targets.for;
 
-            const renderRows = (data) => data.map((item, index) => `
-                <tr class="${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}">
-                    <td class="p-1 font-medium border-b border-gray-200 text-xs ${item.isComponent ? 'pl-6 text-gray-400 text-[9px]' : ''}">
-                        ${item.isComponent ? '↳ ' : ''}${subjectDisplayLabel(item)}
-                    </td>
-                    <td class="p-1 text-gray-600 border-b border-gray-200 text-[10px] uppercase tracking-wider">${item.lvl === 'E' || item.lvl === 'G' ? item.lvl : ''}${(() => { const h = courseChangeHint(item.lvl, item.pts); return h ? `<span class="${h.color} font-bold ml-1">${h.arrow}</span>` : ''; })()}</td>
-                    <td class="p-1 text-right font-mono border-b border-gray-200 text-xs ${item.isComponent ? 'opacity-50' : ''}">${item.note === 'O.B.' ? 'O.B.' : String(item.note).replace('.', ',')}</td>
-                    ${neuesRecht ? '' : `<td class="p-1 text-right font-bold border-b border-gray-200 text-blue-800 text-xs ${item.isComponent ? 'opacity-50' : ''}">${item.pts !== null ? item.pts.toFixed(1) : '-'}</td>`}
-                </tr>
-            `).join('');
+            const renderRows = (data) => data.map(item => {
+                const h = courseChangeHint(item.lvl, item.pts);
+                const pfeil = h ? ` <span style="font-weight:700;color:${h.arrow === '↑' ? '#059669' : '#dc2626'}">${h.arrow}</span>` : '';
+                return `
+                <tr${item.isComponent ? ' class="pr-teil"' : ''}>
+                    <td>${item.isComponent ? '↳ ' : ''}${prText(subjectDisplayLabel(item))}</td>
+                    <td class="pr-kurs">${item.lvl === 'E' || item.lvl === 'G' ? item.lvl : ''}${pfeil}</td>
+                    <td class="pr-r">${item.note === 'O.B.' ? 'O.B.' : prZahl(item.note)}</td>
+                    ${neuesRecht ? '' : `<td class="pr-r pr-wert">${item.pts !== null ? prZahl(item.pts.toFixed(1)) : '–'}</td>`}
+                </tr>`;
+            }).join('');
 
-            const buildPrStatusBox = (title, data) => `
-                <div class="border border-gray-300 rounded p-2">
-                    <div class="flex justify-between items-center mb-1">
-                        <h4 class="font-bold text-xs uppercase">${title}</h4>
-                        <span class="font-bold text-xs">${data.isMet ? '✓' : '×'}</span>
-                    </div>
-                    <div class="space-y-0.5">
-                        ${data.details.map(d => {
+            // Abschluss-/Versetzungskarte. Die Bedingungen brechen um, statt abgeschnitten zu
+            // werden; zweispaltig=true nutzt die volle Breite (Versetzungskarte Klasse 7/8).
+            const buildPrStatusBox = (title, data, zweispaltig) => `
+                        <div class="pr-karte">
+                            <div class="pr-karte-kopf">
+                                <span>${title}</span>
+                                <span style="color:${data.isMet ? '#16a34a' : '#dc2626'}">${data.isMet ? '✓' : '×'}</span>
+                            </div>
+                            <div${zweispaltig ? ' class="pr-bedingungen-2"' : ''}>
+                                ${data.details.map(d => {
                 const s = d.status || (d.ok ? 'ok' : 'fail');
                 const text = s === 'ok' ? 'Ja' : (s === 'warning' ? '⚠️' : (s === 'unknown' ? '?' : 'Nein'));
-                const colorClass = s === 'ok' ? 'text-green-600' : (s === 'unknown' ? 'text-blue-600' : 'text-red-500');
-                return `
-                                <div class="flex justify-between items-center text-[9px]">
-                                    <span class="text-gray-600 pr-1 truncate max-w-[120px]">${d.label}</span>
-                                    <span class="font-bold ${colorClass}">${text}</span>
-                                </div>`;
+                const farbe = s === 'ok' ? '#16a34a' : (s === 'unknown' ? '#2563eb' : '#dc2626');
+                return `<p class="pr-bedingung"><span>${prText(d.label)}</span><span style="color:${farbe}">${text}</span></p>`;
             }).join('')}
-                    </div>
-                </div>
-            `;
+                            </div>
+                        </div>`;
+
+            const tabellenKopf = `<thead><tr><th>Fach</th><th>Kurs</th><th class="pr-r">Note</th>${neuesRecht ? '' : '<th class="pr-r">Pkt</th>'}</tr></thead>`;
+            const prognoseFarbe = res.EBR.isMet ? '#16a34a' : '#dc2626';
 
             return `
-                <div class="report-page bg-white p-6 flex flex-col relative box-border mx-auto">
-                    <header class="border-b-2 border-gray-800 pb-2 mb-4 shrink-0">
-                        <div class="flex justify-between items-end">
-                            <div>
-                                <h1 class="text-2xl font-bold uppercase tracking-wide text-gray-900">${noteJgDruck ? 'Notenübersicht' : 'Leistungsübersicht'}</h1>
-                                <p class="text-gray-600 mt-1 text-sm">${classLabel()} – ${noteJgDruck ? 'Versetzung und Abschlussprognose (kein amtlicher Abschluss)' : 'Abschlussberechnung'}</p>
-                                <p class="text-[10px] text-gray-500 mt-0.5">${regelwerkDruckzeile()}</p>
-                            </div>
-                            <div class="text-right">
-                                <p class="font-semibold text-base">${student.name}</p>
-                                <p class="text-xs text-gray-500">${classLabel()}${halfSuffix()}</p>
-                                <p class="text-xs text-gray-500 text-right mt-0.5">${new Date().toLocaleDateString('de-DE', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
-                            </div>
-                        </div>
-                    </header>
-                    
-                    <div class="flex-1 flex flex-col min-h-0">
-                        <!-- Stats Row -->
-                        <section class="grid grid-cols-3 gap-4 mb-4 shrink-0">
-                            <div class="bg-gray-50 p-2 rounded border border-gray-200 text-center">
-                                <p class="text-[10px] text-gray-500 uppercase font-semibold">Ø Note</p>
-                                <p class="text-lg font-bold text-blue-600 mt-1">${avgGrade}</p>
-                            </div>
-                            <div class="bg-gray-50 p-2 rounded border border-gray-200 text-center">
-                                <p class="text-[10px] text-gray-500 uppercase font-semibold">${neuesRecht ? 'Fächer unter „ausreichend“' : 'Gesamtpunkte'}</p>
-                                <div class="flex items-baseline justify-center gap-1 mt-1">
-                                    ${neuesRecht
-                                        ? `<span class="text-lg font-bold ${res.stats.unter4 ? 'text-red-600' : 'text-gray-800'}">${res.stats.unter4}</span>`
-                                        : `<span class="text-lg font-bold text-gray-800">${res.stats.sumTotal.toFixed(1)}</span>
-                                           <span class="text-lg text-gray-500 font-medium">/ ${currentTarget.total}</span>`}
-                                </div>
-                            </div>
-                            <div class="bg-gray-50 p-2 rounded border border-gray-200 text-center">
-                                <p class="text-[10px] text-gray-500 uppercase font-semibold">Abschlussprognose</p>
-                                <p class="text-lg font-bold mt-1 ${res.EBR.isMet ? 'text-green-600' : 'text-red-600'}">${topAbschluss}</p>
-                            </div>
-                        </section>
-                        
-                        <!-- Conditions Row -->
-                        ${noteJgDruck && res.VERSETZUNG ? `
-                        <div class="mb-3 shrink-0">
-                            ${buildPrStatusBox('Versetzung (§ 36 Abs. 2)', res.VERSETZUNG)}
-                        </div>` : ''}
-                        <div class="grid grid-cols-3 gap-3 mb-4 shrink-0">
-                            ${buildPrStatusBox(noteJgDruck ? 'BBR/EBR (Prognose)' : 'EBR', res.EBR)}
-                            ${buildPrStatusBox(noteJgDruck ? 'FOR (Prognose)' : 'FOR', res.FOR)}
-                            ${buildPrStatusBox(noteJgDruck ? 'FOR-Q (Prognose)' : 'FORQ', res.FORQ)}
-                        </div>
+                <div class="report-page">
+                    ${prKopf(noteJgDruck ? 'Notenübersicht' : 'Leistungsübersicht',
+                        `${classLabel()} – ${noteJgDruck ? 'Versetzung und Abschlussprognose (kein amtlicher Abschluss)' : 'Abschlussberechnung'}`,
+                        regelwerkDruckzeile(), student)}
 
-                        ${examSectionHtml}
+                    <section class="pr-raster pr-raster-3">
+                        ${prKennzahl('Ø Note', prZahl(avgGrade), '#2563eb')}
+                        ${neuesRecht
+                            ? prKennzahl('Fächer unter „ausreichend“', res.stats.unter4, res.stats.unter4 ? '#dc2626' : '#1f2937')
+                            : prKennzahl('Gesamtpunkte', `${prZahl(res.stats.sumTotal.toFixed(1))} <span class="pr-ziel">/ ${currentTarget.total}</span>`)}
+                        ${prKennzahl('Abschlussprognose', topAbschluss, prognoseFarbe)}
+                    </section>
 
-                        <!-- Tables Row -->
-                        <div class="grid grid-cols-2 gap-6 mb-4 shrink-0">
-                            <section>
-                                <h2 class="text-sm font-bold mb-1 border-l-4 border-indigo-600 pl-6 uppercase tracking-tight">Fächergruppe I</h2>
-                                <table class="w-full text-left">
-                                    <thead>
-                                        <tr class="bg-gray-100 border-b border-gray-300">
-                                            <th class="p-1 text-xs">Fach</th>
-                                            <th class="p-1 text-xs">Kurs</th>
-                                            <th class="p-1 text-right text-xs">Note</th>
-                                            ${neuesRecht ? '' : '<th class="p-1 text-right text-xs">Pkt</th>'}
-                                        </tr>
-                                    </thead>
-                                    <tbody>${renderRows(res.stats.fgiRes)}</tbody>
-                                </table>
-                            </section>
-                            <section>
-                                <h2 class="text-sm font-bold mb-1 border-l-4 border-emerald-500 pl-6 uppercase tracking-tight">Fächergruppe II</h2>
-                                <table class="w-full text-left">
-                                    <thead>
-                                        <tr class="bg-gray-100 border-b border-gray-300">
-                                            <th class="p-1 text-xs">Fach</th>
-                                            <th class="p-1 text-xs">Kurs</th>
-                                            <th class="p-1 text-right text-xs">Note</th>
-                                            ${neuesRecht ? '' : '<th class="p-1 text-right text-xs">Pkt</th>'}
-                                        </tr>
-                                    </thead>
-                                    <tbody>${renderRows(res.stats.fgiiRes)}</tbody>
-                                </table>
-                            </section>
-                        </div>
-
-                        <!-- Spacer if needed -->
-                        <div class="flex-grow"></div>
-
-                        <!-- Remarks Section (Fills remaining space) -->
-                        ${remarksReportSection(student)}
+                    ${noteJgDruck && res.VERSETZUNG ? `
+                    <div class="pr-raster">
+                        ${buildPrStatusBox('Versetzung (§ 36 Abs. 2)', res.VERSETZUNG, true)}
+                    </div>` : ''}
+                    <div class="pr-raster pr-raster-3">
+                        ${buildPrStatusBox(noteJgDruck ? 'BBR/EBR (Prognose)' : 'EBR', res.EBR)}
+                        ${buildPrStatusBox(noteJgDruck ? 'FOR (Prognose)' : 'FOR', res.FOR)}
+                        ${buildPrStatusBox(noteJgDruck ? 'FOR-Q (Prognose)' : 'FOR-Q', res.FORQ)}
                     </div>
 
-                    <footer class="mt-2 pt-4 border-t border-gray-300 shrink-0">
-                        <div class="flex justify-between">
-                            <div class="w-1/3">
-                                <div class="h-8 border-b border-gray-400 mb-1"></div>
-                                <p class="text-[9px] text-center text-gray-500">Ort, Datum</p>
-                            </div>
-                            <div class="w-1/3">
-                                <div class="h-8 border-b border-gray-400 mb-1"></div>
-                                <p class="text-[9px] text-center text-gray-500">Unterschrift Klassenleitung</p>
-                            </div>
-                        </div>
-                    </footer>
+                    ${examSectionHtml}
+
+                    <div class="pr-raster pr-raster-2">
+                        <section>
+                            <h2 class="pr-abschnitt">Fächergruppe I</h2>
+                            <table class="pr-tabelle">${tabellenKopf}<tbody>${renderRows(res.stats.fgiRes)}</tbody></table>
+                        </section>
+                        <section>
+                            <h2 class="pr-abschnitt pr-gruen">Fächergruppe II</h2>
+                            <table class="pr-tabelle">${tabellenKopf}<tbody>${renderRows(res.stats.fgiiRes)}</tbody></table>
+                        </section>
+                    </div>
+
+                    <div class="pr-fueller"></div>
+                    ${remarksReportSection(student)}
+                    ${prUnterschrift()}
                 </div>
             `;
         };
@@ -4794,16 +4996,21 @@
                 const avg = rated.length ? (rated.reduce((a, x) => a + (typeof x.note === 'number' ? x.note : 0), 0) / rated.length).toFixed(2) : '--';
                 const ch = res.stats.fgiRes.map(r => { const h = courseChangeHint(r.lvl, r.pts); return h ? subjectDisplayLabel(r) + ' ' + h.arrow : ''; }).filter(Boolean).join(', ');
                 const top = res.FORQ.isMet ? 'FOR-Q' : res.FOR.isMet ? 'FOR' : res.EBR.isMet ? 'EBR' : '–';
-                return `<tr><td style="text-align:left">${s.name}</td><td>${top}</td><td>${mark(res.EBR)}</td><td>${mark(res.FOR)}</td><td>${mark(res.FORQ)}</td><td>${avg}</td><td>${res.stats.mode === 'neu' ? res.stats.unter4 : res.stats.sumTotal.toFixed(1)}</td><td style="text-align:left">${ch || '–'}</td></tr>`;
+                return `<tr><td>${prText(s.name)}</td><td class="pr-m">${top}</td><td class="pr-m">${mark(res.EBR)}</td><td class="pr-m">${mark(res.FOR)}</td><td class="pr-m">${mark(res.FORQ)}</td><td class="pr-r">${prZahl(avg)}</td><td class="pr-r">${res.stats.mode === 'neu' ? res.stats.unter4 : prZahl(res.stats.sumTotal.toFixed(1))}</td><td>${prText(ch || '–')}</td></tr>`;
             }).join('');
             const sortSuffix = classSort ? ` · sortiert nach ${CLASS_SORT_LABELS[classSort]}` : '';
             printTemplate(`
-                <div style="font-family:Inter,sans-serif;color:#1f2937">
-                    <h1 style="font-size:1.4rem;font-weight:800;margin-bottom:2px">Klassenliste – Abschlussübersicht</h1>
-                    <p style="color:#6b7280;margin-bottom:12px;font-size:10pt">${classLabel()}${halfSuffix()} · ${students.length} Schüler · Stand ${new Date().toLocaleDateString('de-DE')}${sortSuffix}${regelwerkDruckzeile() ? ' · ' + regelwerkDruckzeile() : ''}</p>
-                    <table style="width:100%;border-collapse:collapse;font-size:9pt">
-                        <thead><tr style="background:#f1f5f9">
-                            <th style="text-align:left">Name</th><th>Abschluss</th><th>BBR/EBR</th><th>FOR</th><th>FOR-Q</th><th>Ø Note</th><th>${istRegelwerkNeu() ? 'Fächer &lt; 4' : 'Punkte'}</th><th style="text-align:left">Kurswechsel</th>
+                <div class="pr-blatt pr-liste">
+                    <header class="pr-kopf">
+                        <div>
+                            <h1 class="pr-titel">Klassenliste – Abschlussübersicht</h1>
+                            <p class="pr-untertitel">${prText(classLabel() + halfSuffix())} · ${students.length} Schüler · Stand ${new Date().toLocaleDateString('de-DE')}${sortSuffix}</p>
+                            ${regelwerkDruckzeile() ? `<p class="pr-meta">${regelwerkDruckzeile()}</p>` : ''}
+                        </div>
+                    </header>
+                    <table class="pr-tabelle">
+                        <thead><tr>
+                            <th>Name</th><th class="pr-m">Abschluss</th><th class="pr-m">BBR/EBR</th><th class="pr-m">FOR</th><th class="pr-m">FOR-Q</th><th class="pr-r">Ø Note</th><th class="pr-r">${istRegelwerkNeu() ? 'Fächer &lt; 4' : 'Punkte'}</th><th>Kurswechsel</th>
                         </tr></thead>
                         <tbody>${rows}</tbody>
                     </table>
