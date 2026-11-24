@@ -8,7 +8,7 @@
  * Dateien ändern – ein Leerbau erzeugt keine Fehlmeldung „Neue Version verfügbar".
  * Diese Datei selbst wird beim Bauen nie überschrieben.
  */
-const CACHE = 'tgs-abschlussrechner-54077b5886a9';
+const CACHE = 'tgs-abschlussrechner-150e44919c13';
 
 // Alles relativ ZUM PWA-ORDNER: er enthält seine Bibliotheken selbst (der Build kopiert
 // vendor/ und favicon.png hinein) und lässt sich deshalb allein auf einen Server legen.
