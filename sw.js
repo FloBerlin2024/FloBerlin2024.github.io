@@ -8,7 +8,7 @@
  * Dateien ändern – ein Leerbau erzeugt keine Fehlmeldung „Neue Version verfügbar".
  * Diese Datei selbst wird beim Bauen nie überschrieben.
  */
-const CACHE = 'tgs-abschlussrechner-35025e75348d';
+const CACHE = 'tgs-abschlussrechner-54077b5886a9';
 
 // Alles relativ ZUM PWA-ORDNER: er enthält seine Bibliotheken selbst (der Build kopiert
 // vendor/ und favicon.png hinein) und lässt sich deshalb allein auf einen Server legen.
@@ -31,8 +31,19 @@ const PRECACHE = [
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE)
-      // einzeln hinzufügen, damit ein fehlendes optionales Asset den Install nicht abbricht
-      .then((cache) => Promise.allSettled(PRECACHE.map((url) => cache.add(url))))
+      // einzeln hinzufügen, damit ein fehlendes optionales Asset den Install nicht abbricht.
+      // cache: 'reload' = am HTTP-Cache des Browsers VORBEI frisch vom Server holen. Sonst
+      // übernimmt ein neuer Service Worker veraltete Dateien (GitHub Pages: max-age=600) –
+      // so blieben in v2.4.3 leere Symbole hängen und die App war nicht installierbar.
+      // Leere Antworten werden nicht gespeichert.
+      .then((cache) => Promise.allSettled(PRECACHE.map((url) =>
+        fetch(new Request(url, { cache: 'reload' })).then((res) => {
+          if (!res.ok) throw new Error(url + ' ' + res.status);
+          return res.clone().arrayBuffer().then((buf) => {
+            if (buf.byteLength === 0) throw new Error(url + ' ist leer');
+            return cache.put(url, res);
+          });
+        }))))
       .then(() => self.skipWaiting())
   );
 });
